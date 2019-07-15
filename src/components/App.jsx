@@ -1,6 +1,7 @@
 import React from 'react';
 import './App.css';
 import AuthButton from './AuthButton';
+import Player from "./Player";
 import {getUrlParamsMap} from "../util/URLHelpers";
 import {getSpotifyAccessTokenEndpoint} from "../resources/RestEndpoints";
 import CookieHelpers from "../util/CookieHelpers";
@@ -15,7 +16,7 @@ class App extends React.Component {
       authorizationCode: this.urlParamsMap.get("code"),
       authorizationError: this.urlParamsMap.get("error"),
       accessToken: CookieHelpers.getCookie(SPOTIFY_ACCESS_TOKEN)
-    }
+    };
   }
 
   render() {
@@ -44,7 +45,7 @@ class App extends React.Component {
               authorizationCode={authorizationCode}
               authorizationError={authorizationError}
               accessToken={accessToken}>
-            access token available
+            <Player accessToken={accessToken} />
           </AuthButton>
         </div>
     );
