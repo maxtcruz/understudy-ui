@@ -8,7 +8,7 @@ class Player extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-
+      playerReady: false
     };
   }
 
@@ -16,20 +16,27 @@ class Player extends React.Component {
     loadPlayer().then(({Player}) => {
       const player = new Player({
         name: "understudy",
-        getOAuthToken: cb => { cb(this.props.accessToken); }
+        getOAuthToken: (cb) => {
+          cb(this.props.accessToken);
+        }
       });
       player.connect();
+      this.setState({
+        playerReady: true
+      });
     })
   };
 
   render() {
+    const childrenJsx = this.state.playerReady ? this.props.children : "";
     return (
-        <div>
+        <div className="player">
           <Script
               url="https://sdk.scdn.co/spotify-player.js"
               onError={(err) => {console.err(err)}}
               onLoad={this.onSpotifyWebPlaybackSDKLoad}
           />
+          {childrenJsx}
         </div>
     );
   }

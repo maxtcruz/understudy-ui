@@ -2,6 +2,7 @@ import React from 'react';
 import './App.css';
 import AuthButton from './AuthButton';
 import Player from "./Player";
+import TrackSearcher from "./TrackSearcher";
 import {getUrlParamsMap} from "../util/URLHelpers";
 import {getSpotifyAccessTokenEndpoint} from "../resources/RestEndpoints";
 import CookieHelpers from "../util/CookieHelpers";
@@ -32,7 +33,7 @@ class App extends React.Component {
           this.setState({accessToken: data.access_token});
         });
       })
-      .catch((err) => {
+      .catch(() => {
         //TODO: throw custom exception on BE for bad request, log as warning and redirect
         window.location.assign("http://localhost:3000");
       })
@@ -45,7 +46,10 @@ class App extends React.Component {
               authorizationCode={authorizationCode}
               authorizationError={authorizationError}
               accessToken={accessToken}>
-            <Player accessToken={accessToken} />
+            <Player
+                accessToken={accessToken}>
+              <TrackSearcher accessToken={accessToken} />
+            </Player>
           </AuthButton>
         </div>
     );
