@@ -2,14 +2,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Script from "react-load-script";
 import './Player.css';
+import Content from "./Content";
 import {loadPlayer} from "../util/SpotifyWebPlaybackSDKHelpers";
 
 class Player extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      playerReady: false
-    };
+    this.state = {}
   }
 
   onSpotifyWebPlaybackSDKLoad = () => {
@@ -20,6 +19,9 @@ class Player extends React.Component {
           cb(this.props.accessToken);
         }
       });
+      player.addListener("ready", ({device_id}) => {
+        this.setState({deviceId: device_id});
+      });
       player.connect();
       this.setState({
         playerReady: true
@@ -28,7 +30,11 @@ class Player extends React.Component {
   };
 
   render() {
-    const childrenJsx = this.state.playerReady ? this.props.children : "";
+    const contentJsx = this.state.deviceId
+        ? <Content
+            accessToken={this.props.accessToken}
+            deviceId={this.state.deviceId} />
+        : "loading...";
     return (
         <div className="player">
           <Script
@@ -36,7 +42,7 @@ class Player extends React.Component {
               onError={(err) => {console.err(err)}}
               onLoad={this.onSpotifyWebPlaybackSDKLoad}
           />
-          {childrenJsx}
+          {contentJsx}
         </div>
     );
   }

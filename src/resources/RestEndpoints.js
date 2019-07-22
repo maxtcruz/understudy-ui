@@ -11,11 +11,16 @@ const getSpotifyAccessTokenEndpoint = (authorizationCode) => {
 
 const getSpotifySearchEndpoint = (query, type) => {
   return `${SPOTIFY_WEB_API_BASE_URL}/search?q=${query}&type=${type}`;
-}
+};
+
+const getSpotifyPlayEndpoint = (deviceId) => {
+  return `${SPOTIFY_WEB_API_BASE_URL}/me/player/play/?device_id=${deviceId}`;
+};
 
 export {
   UNDERSTUDY_SERVICE_BASE_URL,
   getSpotifyAuthCodeEndpoint,
   getSpotifyAccessTokenEndpoint,
-  getSpotifySearchEndpoint
+  getSpotifySearchEndpoint,
+  getSpotifyPlayEndpoint
 }

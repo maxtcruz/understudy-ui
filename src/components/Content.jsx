@@ -1,10 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import './TrackSearcher.css';
-import {getSpotifySearchEndpoint} from "../resources/RestEndpoints";
+import './Content.css';
+import {getSpotifySearchEndpoint, getSpotifyPlayEndpoint} from "../resources/RestEndpoints";
 import {handleErrors} from "../util/RestHelpers";
 
-class TrackSearcher extends React.Component {
+class Content extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -43,20 +43,44 @@ class TrackSearcher extends React.Component {
     })
   };
 
+  handlePlayTrack = (trackId) => {
+    fetch(getSpotifyPlayEndpoint(this.props.deviceId), {
+      method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${this.props.accessToken}`
+      },
+      body: JSON.stringify({"uris": [`spotify:track:${trackId}`]})
+    })
+    .then(handleErrors)
+    .catch((err) => {
+      console.error(err);
+    });
+  };
+
   render() {
     return (
         <div>
           <div className="track-searcher">
-            <input type="text" value={this.state.searchQuery} onChange={this.handleOnChange}/>
+            <input
+                type="text"
+                value={this.state.searchQuery}
+                className="search-field"
+                onChange={this.handleOnChange}/>
             <button onClick={this.handleSearch}>
               search
             </button>
           </div>
           <div className="results">
             <ul>
-            {this.state.searchResults.map((item) => {
-              return (<li key={item.id}>{item.artist} - {item.trackName}</li>);
-            })}
+              {this.state.searchResults.map((item) => {
+                return (
+                    <li
+                        className="track"
+                        key={item.id}
+                        onClick={() => {this.handlePlayTrack(item.id)}}>
+                      {item.artist} - {item.trackName}
+                    </li>);
+              })}
             </ul>
           </div>
         </div>
@@ -64,8 +88,9 @@ class TrackSearcher extends React.Component {
   }
 }
 
-TrackSearcher.propTypes = {
-  accessToken: PropTypes.string
+Content.propTypes = {
+  accessToken: PropTypes.string.isRequired,
+  deviceId: PropTypes.string.isRequired
 };
 
-export default TrackSearcher;
+export default Content;

@@ -2,7 +2,6 @@ import React from 'react';
 import './App.css';
 import AuthButton from './AuthButton';
 import Player from "./Player";
-import TrackSearcher from "./TrackSearcher";
 import {getUrlParamsMap} from "../util/URLHelpers";
 import {getSpotifyAccessTokenEndpoint} from "../resources/RestEndpoints";
 import CookieHelpers from "../util/CookieHelpers";
@@ -46,10 +45,7 @@ class App extends React.Component {
               authorizationCode={authorizationCode}
               authorizationError={authorizationError}
               accessToken={accessToken}>
-            <Player
-                accessToken={accessToken}>
-              <TrackSearcher accessToken={accessToken} />
-            </Player>
+            <Player accessToken={accessToken} />
           </AuthButton>
         </div>
     );
