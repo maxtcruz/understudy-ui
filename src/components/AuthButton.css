@@ -1,3 +1,7 @@
 .auth-error {
-  color: red
+  color: red;
+}
+
+.auth-button {
+  text-align: center;
 }

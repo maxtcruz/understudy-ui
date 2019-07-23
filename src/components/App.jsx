@@ -40,7 +40,7 @@ class App extends React.Component {
 
     return (
         <div className="app">
-          <h1>understudy</h1>
+          <h1 className="title">understudy</h1>
           <AuthButton
               authorizationCode={authorizationCode}
               authorizationError={authorizationError}

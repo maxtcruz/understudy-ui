@@ -1,0 +1,9 @@
+.search-field {
+  margin-right: 1rem;
+}
+
+.track-searcher {
+  display: inline-block;
+  margin-left: 1rem;
+  width: 50%;
+}

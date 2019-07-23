@@ -34,7 +34,7 @@ class Player extends React.Component {
         ? <Content
             accessToken={this.props.accessToken}
             deviceId={this.state.deviceId} />
-        : "loading...";
+        : <div className="loading">loading...</div>;
     return (
         <div className="player">
           <Script
