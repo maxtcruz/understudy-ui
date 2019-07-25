@@ -1,5 +1,9 @@
 .track-queue {
-  display: inline-block;
-  width: 45%;
-  vertical-align: top;
+  text-align: left;
+  margin-left: 33%;
+  margin-top: 1rem;
+}
+
+.start-button {
+  margin-left: 23%;
 }

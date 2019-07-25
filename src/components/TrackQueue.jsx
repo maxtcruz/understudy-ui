@@ -10,18 +10,14 @@ class TrackQueue extends React.Component {
     super(props);
     this.state = {
       isPlaying: false,
-      currentTrack: null
+      currentTrackIndex: 0
     }
   }
 
   startQueue = () => {
+    const firstTrack = this.props.trackQueue[0];
+    this.playTrack(firstTrack.id);
     this.setState({isPlaying: true});
-    let currentTrack = this.state.currentTrack;
-    if (!currentTrack) {
-      currentTrack = this.props.trackQueue[0];
-      this.setState({currentTrack});
-    }
-    this.playTrack(currentTrack.id);
   };
 
   playTrack = (trackId) => {
@@ -33,6 +29,9 @@ class TrackQueue extends React.Component {
       body: JSON.stringify({"uris": [`spotify:track:${trackId}`]})
     })
     .then(handleErrors)
+    .then(() => {
+      this.setState({currentTrackIndex: this.state.currentTrackIndex + 1});
+    })
     .catch((err) => {
       console.error(err);
     });
@@ -41,10 +40,19 @@ class TrackQueue extends React.Component {
   render() {
     let startQueueButtonJsx;
     if (!this.state.isPlaying && this.props.trackQueue.length > 0) {
+      //TODO: add classnames dependency and dynamically hide button via css when clicked
       startQueueButtonJsx =
-          <button onClick={this.startQueue}>
+          <button
+              className="start-button"
+              onClick={this.startQueue}>
             start
           </button>;
+    }
+    if (this.state.isPlaying
+        && this.props.isTrackOver
+        && this.state.currentTrackIndex < this.props.trackQueue.length) {
+      const nextTrack = this.props.trackQueue[this.state.currentTrackIndex];
+      this.playTrack(nextTrack.id);
     }
     return (
         <div className="track-queue">
@@ -68,7 +76,8 @@ class TrackQueue extends React.Component {
 TrackQueue.propTypes = {
   accessToken: PropTypes.string.isRequired,
   deviceId: PropTypes.string.isRequired,
-  trackQueue: PropTypes.array.isRequired
+  trackQueue: PropTypes.array.isRequired,
+  isTrackOver: PropTypes.bool.isRequired
 };
 
 export default TrackQueue;
