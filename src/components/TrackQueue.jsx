@@ -14,6 +14,15 @@ class TrackQueue extends React.Component {
     }
   }
 
+  componentDidUpdate(prevProps) {
+    if (!prevProps.isTrackOver
+        && this.props.isTrackOver
+        && this.state.currentTrackIndex < this.props.trackQueue.length) {
+      const nextTrack = this.props.trackQueue[this.state.currentTrackIndex];
+      this.playTrack(nextTrack.id);
+    }
+  }
+
   startQueue = () => {
     const firstTrack = this.props.trackQueue[0];
     this.playTrack(firstTrack.id);
@@ -47,12 +56,6 @@ class TrackQueue extends React.Component {
               onClick={this.startQueue}>
             start
           </button>;
-    }
-    if (this.state.isPlaying
-        && this.props.isTrackOver
-        && this.state.currentTrackIndex < this.props.trackQueue.length) {
-      const nextTrack = this.props.trackQueue[this.state.currentTrackIndex];
-      this.playTrack(nextTrack.id);
     }
     return (
         <div className="track-queue">

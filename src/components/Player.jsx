@@ -23,7 +23,9 @@ class Player extends React.Component {
         }
       });
       player.addListener("player_state_changed", (state) => {
-        this.setState({isTrackOver: state.paused});
+        if (state) {
+          this.setState({isTrackOver: state.paused});
+        }
       });
       player.addListener("ready", ({device_id}) => {
         this.setState({deviceId: device_id});
