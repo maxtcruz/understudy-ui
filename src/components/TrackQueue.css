@@ -4,6 +4,18 @@
   margin-top: 1rem;
 }
 
+.track-queue-header {
+  height: 4rem;
+}
+
 .start-button {
   margin-left: 23%;
+}
+
+.up-next {
+  margin-left: 21.7%;
+}
+
+.hide-element {
+  display: none;
 }

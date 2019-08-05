@@ -20,6 +20,7 @@ class Content extends React.Component {
     this.searchTracks(searchQuery, 1000)
     .then((searchResults) => {
       const trackQueue = [];
+      let currentTrackIndex = 0;
       let queueDurationMs = 0;
       const usedIndices = new Set();
       while (queueDurationMs < this.state.studyDurationMs) {
@@ -29,6 +30,8 @@ class Content extends React.Component {
         }
         usedIndices.add(randomIndex);
         const trackToAddToQueue = searchResults[randomIndex];
+        trackToAddToQueue.index = currentTrackIndex;
+        currentTrackIndex++;
         queueDurationMs += trackToAddToQueue.durationMs;
         trackQueue.push(trackToAddToQueue);
       }

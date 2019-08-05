@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import classnames from "classnames";
 import './TrackQueue.css';
 import {getTrackDisplayName} from "../util/SpotifyWebAPIHelpers";
 import {getSpotifyPlayEndpoint} from "../resources/RestEndpoints";
@@ -10,15 +11,15 @@ class TrackQueue extends React.Component {
     super(props);
     this.state = {
       isPlaying: false,
-      currentTrackIndex: 0
+      nextTrackIndex: 0
     }
   }
 
   componentDidUpdate(prevProps) {
     if (!prevProps.isTrackOver
         && this.props.isTrackOver
-        && this.state.currentTrackIndex < this.props.trackQueue.length) {
-      const nextTrack = this.props.trackQueue[this.state.currentTrackIndex];
+        && this.state.nextTrackIndex < this.props.trackQueue.length) {
+      const nextTrack = this.props.trackQueue[this.state.nextTrackIndex];
       this.playTrack(nextTrack.id);
     }
   }
@@ -39,7 +40,7 @@ class TrackQueue extends React.Component {
     })
     .then(handleErrors)
     .then(() => {
-      this.setState({currentTrackIndex: this.state.currentTrackIndex + 1});
+      this.setState({nextTrackIndex: this.state.nextTrackIndex + 1});
     })
     .catch((err) => {
       console.error(err);
@@ -47,27 +48,42 @@ class TrackQueue extends React.Component {
   };
 
   render() {
-    let startQueueButtonJsx;
-    if (!this.state.isPlaying && this.props.trackQueue.length > 0) {
-      //TODO: add classnames dependency and dynamically hide button via css when clicked
-      startQueueButtonJsx =
-          <button
-              className="start-button"
-              onClick={this.startQueue}>
-            start
-          </button>;
-    }
+    const startButtonClassName = classnames("start-button", {
+      "hide-element": this.state.isPlaying || this.props.trackQueue.length === 0
+    });
+    const nowPlayingClassname = classnames({
+      "hide-element": !this.state.isPlaying
+    });
+    const upNextClassName = classnames("up-next", {
+      "hide-element": this.props.trackQueue.length === 0
+    });
     return (
         <div className="track-queue">
-          {startQueueButtonJsx}
+          <div className="track-queue-header">
+            <button
+                className={startButtonClassName}
+                onClick={this.startQueue}>
+              start
+            </button>
+            <div className={nowPlayingClassname}>
+              now playing {this.state.nextTrackIndex > 0
+                ? getTrackDisplayName(this.props.trackQueue[this.state.nextTrackIndex - 1])
+                : ""}
+            </div>
+            <h3 className={upNextClassName}>up next</h3>
+          </div>
           <div>
             <ul>
               {this.props.trackQueue.map((trackInfo) => {
-                return (
-                    <li key={trackInfo.id}>
-                      {getTrackDisplayName(trackInfo)}
-                    </li>
-                );
+                if (trackInfo.index >= this.state.nextTrackIndex) {
+                  return (
+                      <li key={trackInfo.id}>
+                        {getTrackDisplayName(trackInfo)}
+                      </li>
+                  );
+                } else {
+                  return null;
+                }
               })}
             </ul>
           </div>
