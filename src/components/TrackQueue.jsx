@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import classnames from "classnames";
 import './TrackQueue.css';
 import {getTrackDisplayName} from "../util/SpotifyWebAPIHelpers";
 import {getSpotifyPlayEndpoint} from "../resources/RestEndpoints";
@@ -27,6 +26,7 @@ class TrackQueue extends React.Component {
   startQueue = () => {
     const firstTrack = this.props.trackQueue[0];
     this.playTrack(firstTrack.id);
+    this.props.onStart();
     this.setState({isPlaying: true});
   };
 
@@ -47,30 +47,52 @@ class TrackQueue extends React.Component {
     });
   };
 
+  skip = () => {
+    const nextTrack = this.props.trackQueue[this.state.nextTrackIndex];
+    this.playTrack(nextTrack.id);
+    this.props.fillQueue(this.props.trackQueue[this.state.nextTrackIndex - 1].id);
+  };
+
   render() {
-    const startButtonClassName = classnames("start-button", {
-      "hide-element": this.state.isPlaying || this.props.trackQueue.length === 0
-    });
-    const nowPlayingClassname = classnames({
-      "hide-element": !this.state.isPlaying
-    });
-    const upNextClassName = classnames("up-next", {
-      "hide-element": this.props.trackQueue.length === 0
-    });
+    let startButtonJsx;
+    if (!this.state.isPlaying && this.props.trackQueue.length > 0) {
+      startButtonJsx = (
+          <button
+              className="start-button"
+              onClick={this.startQueue}>
+            start
+          </button>
+      );
+    }
+    let nowPlayingJsx;
+    if (this.state.isPlaying) {
+      nowPlayingJsx = (
+          <div className="now-playing">
+            <button
+                onClick={this.skip}
+                className="skip-button">
+              skip
+            </button>
+            now playing: {this.state.nextTrackIndex > 0
+              ? getTrackDisplayName(this.props.trackQueue[this.state.nextTrackIndex - 1])
+              : ""}
+          </div>
+      );
+    }
+    let upNextJsx;
+    if (this.props.trackQueue.length > 0) {
+      upNextJsx = (
+          <h3 className="up-next">
+            up next
+          </h3>
+      );
+    }
     return (
         <div className="track-queue">
           <div className="track-queue-header">
-            <button
-                className={startButtonClassName}
-                onClick={this.startQueue}>
-              start
-            </button>
-            <div className={nowPlayingClassname}>
-              now playing {this.state.nextTrackIndex > 0
-                ? getTrackDisplayName(this.props.trackQueue[this.state.nextTrackIndex - 1])
-                : ""}
-            </div>
-            <h3 className={upNextClassName}>up next</h3>
+            {startButtonJsx}
+            {nowPlayingJsx}
+            {upNextJsx}
           </div>
           <div>
             <ul>
@@ -96,7 +118,9 @@ TrackQueue.propTypes = {
   accessToken: PropTypes.string.isRequired,
   deviceId: PropTypes.string.isRequired,
   trackQueue: PropTypes.array.isRequired,
-  isTrackOver: PropTypes.bool.isRequired
+  isTrackOver: PropTypes.bool.isRequired,
+  onStart: PropTypes.func.isRequired,
+  fillQueue: PropTypes.func.isRequired
 };
 
 export default TrackQueue;

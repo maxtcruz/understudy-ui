@@ -12,30 +12,18 @@ class Content extends React.Component {
     this.state = {
       trackQueue: [],
       queueDurationMs: 0,
-      studyDurationMs: 3600000
-    }
+      studyDurationMs: 3600000,
+      isStarted: false
+    };
+    this.usedTrackIds = new Set();
+    this.searchResults = [];
   }
 
   buildInitialQueue = (searchQuery) => {
     this.searchTracks(searchQuery, 1000)
     .then((searchResults) => {
-      const trackQueue = [];
-      let currentTrackIndex = 0;
-      let queueDurationMs = 0;
-      const usedIndices = new Set();
-      while (queueDurationMs < this.state.studyDurationMs) {
-        let randomIndex = Math.floor(Math.random() * 1000);
-        while (usedIndices.has(randomIndex)) {
-          randomIndex = Math.floor(Math.random() * 1000);
-        }
-        usedIndices.add(randomIndex);
-        const trackToAddToQueue = searchResults[randomIndex];
-        trackToAddToQueue.index = currentTrackIndex;
-        currentTrackIndex++;
-        queueDurationMs += trackToAddToQueue.durationMs;
-        trackQueue.push(trackToAddToQueue);
-      }
-      this.setState({trackQueue, queueDurationMs});
+      this.searchResults = searchResults;
+      this.fillQueue();
     });
   };
 
@@ -76,6 +64,38 @@ class Content extends React.Component {
     });
   };
 
+  fillQueue = (trackToBeSoftDeleted) => {
+    const trackQueue = [];
+    let queueDurationMs = 0;
+    this.state.trackQueue.forEach((track) => {
+      if (!track.softDeleted) {
+        if (track.id === trackToBeSoftDeleted) {
+          trackQueue.push(Object.assign({}, track, {softDeleted: true}));
+        } else {
+          queueDurationMs += track.durationMs;
+          trackQueue.push(track);
+        }
+      } else {
+          trackQueue.push(track);
+      }
+    });
+    while (queueDurationMs < this.state.studyDurationMs) {
+      let trackToAdd = this.searchResults[Math.floor(Math.random() * this.searchResults.length)];
+      while (this.usedTrackIds.has(trackToAdd.id)) {
+        trackToAdd = this.searchResults[Math.floor(Math.random() * this.searchResults.length)];
+      }
+      this.usedTrackIds.add(trackToAdd.id);
+      trackToAdd.index = trackQueue.length;
+      queueDurationMs += trackToAdd.durationMs;
+      trackQueue.push(trackToAdd);
+    }
+    this.setState({trackQueue, queueDurationMs});
+  };
+
+  onStart = () => {
+    this.setState({isStarted: true});
+  };
+
   getClockFormat = (ms) => {
     const totalSeconds = Math.ceil(ms / 1000);
     const totalMinutes = Math.floor(totalSeconds / 60);
@@ -90,13 +110,17 @@ class Content extends React.Component {
   render() {
     return (
         <div className="content">
-          <SearchInput onSearch={this.buildInitialQueue} />
+          <SearchInput
+              onSearch={this.buildInitialQueue}
+              isStarted={this.state.isStarted} />
           {`queue duration: ${this.getClockFormat(this.state.queueDurationMs)}`}
           <TrackQueue
               accessToken={this.props.accessToken}
               deviceId={this.props.deviceId}
               trackQueue={this.state.trackQueue}
-              isTrackOver={this.props.isTrackOver} />
+              isTrackOver={this.props.isTrackOver}
+              onStart={this.onStart}
+              fillQueue={this.fillQueue} />
         </div>
     );
   }
