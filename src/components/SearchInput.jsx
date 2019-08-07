@@ -19,24 +19,19 @@ class SearchInput extends React.Component {
   };
 
   render() {
-    let trackSearcherJsx;
-    if (!this.props.isStarted) {
-      trackSearcherJsx = (
-          <React.Fragment>
-            <input
-                type="text"
-                value={this.state.searchQuery}
-                className="search-field"
-                onChange={this.handleOnChange}/>
-            <button onClick={this.handleOnClick}>
-              search genre
-            </button>
-          </React.Fragment>
-      );
+    if (this.props.isStarted || !this.props.isTimeSet) {
+      return null;
     }
     return (
         <div className="track-searcher">
-          {trackSearcherJsx}
+          <input
+              type="text"
+              value={this.state.searchQuery}
+              className="search-field"
+              onChange={this.handleOnChange} />
+          <button onClick={this.handleOnClick}>
+            search genre
+          </button>
         </div>
     );
   }
@@ -44,7 +39,8 @@ class SearchInput extends React.Component {
 
 SearchInput.propTypes = {
   onSearch: PropTypes.func.isRequired,
-  isStarted: PropTypes.bool.isRequired
+  isStarted: PropTypes.bool.isRequired,
+  isTimeSet: PropTypes.bool.isRequired
 };
 
 export default SearchInput;

@@ -1,6 +1,6 @@
-const getTrackDisplayName = (trackInfo) => {
-  let displayName = `${trackInfo.artist} - ${trackInfo.trackName}`;
-  if (trackInfo.explicit) {
+const getTrackDisplayName = (track) => {
+  let displayName = `${track.artist} - ${track.trackName}`;
+  if (track.explicit) {
     displayName += " (explicit)";
   }
   return displayName;

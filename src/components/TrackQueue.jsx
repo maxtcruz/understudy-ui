@@ -10,52 +10,62 @@ class TrackQueue extends React.Component {
     super(props);
     this.state = {
       isPlaying: false,
-      nextTrackIndex: 0
+      currentTrackIndex: -1
     }
   }
 
   componentDidUpdate(prevProps) {
     if (!prevProps.isTrackOver
         && this.props.isTrackOver
-        && this.state.nextTrackIndex < this.props.trackQueue.length) {
-      const nextTrack = this.props.trackQueue[this.state.nextTrackIndex];
+        && this.state.currentTrackIndex < this.props.trackQueue.length - 1) {
+      const nextTrack = this.findNextTrack();
       this.playTrack(nextTrack.id);
     }
   }
 
+  findNextTrack = () => {
+    const {trackQueue} = this.props;
+    let index = this.state.currentTrackIndex + 1;
+    while (trackQueue[index].softDeleted) {
+      index++;
+    }
+    this.setState({currentTrackIndex: index});
+    return trackQueue[index];
+  };
+
   startQueue = () => {
-    const firstTrack = this.props.trackQueue[0];
+    const firstTrack = this.findNextTrack();
     this.playTrack(firstTrack.id);
     this.props.onStart();
     this.setState({isPlaying: true});
   };
 
   playTrack = (trackId) => {
-    fetch(getSpotifyPlayEndpoint(this.props.deviceId), {
+    const {deviceId, accessToken} = this.props;
+    fetch(getSpotifyPlayEndpoint(deviceId), {
       method: "PUT",
       headers: {
-        "Authorization": `Bearer ${this.props.accessToken}`
+        "Authorization": `Bearer ${accessToken}`
       },
       body: JSON.stringify({"uris": [`spotify:track:${trackId}`]})
     })
     .then(handleErrors)
-    .then(() => {
-      this.setState({nextTrackIndex: this.state.nextTrackIndex + 1});
-    })
     .catch((err) => {
       console.error(err);
     });
   };
 
   skip = () => {
-    const nextTrack = this.props.trackQueue[this.state.nextTrackIndex];
+    const {trackQueue, fillQueue} = this.props;
+    const nextTrack = this.findNextTrack();
     this.playTrack(nextTrack.id);
-    this.props.fillQueue(this.props.trackQueue[this.state.nextTrackIndex - 1].id);
+    fillQueue(trackQueue, trackQueue[this.state.currentTrackIndex].id);
   };
 
   render() {
+    const {trackQueue, fillQueue} = this.props;
     let startButtonJsx;
-    if (!this.state.isPlaying && this.props.trackQueue.length > 0) {
+    if (!this.state.isPlaying && trackQueue.length > 0) {
       startButtonJsx = (
           <button
               className="start-button"
@@ -73,14 +83,14 @@ class TrackQueue extends React.Component {
                 className="skip-button">
               skip
             </button>
-            now playing: {this.state.nextTrackIndex > 0
-              ? getTrackDisplayName(this.props.trackQueue[this.state.nextTrackIndex - 1])
+            now playing: {this.state.currentTrackIndex > -1
+              ? getTrackDisplayName(trackQueue[this.state.currentTrackIndex])
               : ""}
           </div>
       );
     }
     let upNextJsx;
-    if (this.props.trackQueue.length > 0) {
+    if (trackQueue.length > 0) {
       upNextJsx = (
           <h3 className="up-next">
             up next
@@ -96,11 +106,12 @@ class TrackQueue extends React.Component {
           </div>
           <div>
             <ul>
-              {this.props.trackQueue.map((trackInfo) => {
-                if (trackInfo.index >= this.state.nextTrackIndex) {
+              {trackQueue.map((track) => {
+                if (track.index > this.state.currentTrackIndex && !track.softDeleted) {
                   return (
-                      <li key={trackInfo.id}>
-                        {getTrackDisplayName(trackInfo)}
+                      <li key={track.id}>
+                        {getTrackDisplayName(track)}
+                        <button onClick={() => {fillQueue(trackQueue, track.id)}}>remove</button>
                       </li>
                   );
                 } else {

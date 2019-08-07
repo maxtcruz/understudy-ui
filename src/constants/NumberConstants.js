@@ -1,0 +1,5 @@
+const NUM_TRACKS_TO_SEARCH = 1000;
+
+export {
+  NUM_TRACKS_TO_SEARCH
+}

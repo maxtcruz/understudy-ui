@@ -1,10 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import './Content.css';
+import TimeInput from "./TimeInput";
 import SearchInput from "./SearchInput";
+import Clock from "./Clock";
 import TrackQueue from "./TrackQueue";
 import {getSpotifySearchEndpoint} from "../resources/RestEndpoints";
 import {handleErrors} from "../util/RestHelpers";
+import {NUM_TRACKS_TO_SEARCH} from "../constants/NumberConstants";
 
 class Content extends React.Component {
   constructor(props) {
@@ -12,19 +15,26 @@ class Content extends React.Component {
     this.state = {
       trackQueue: [],
       queueDurationMs: 0,
-      studyDurationMs: 3600000,
-      isStarted: false
+      studyDurationMs: 0,
+      timeElapsedMs: 0,
+      isStarted: false,
+      isTimeSet: false
     };
     this.usedTrackIds = new Set();
     this.searchResults = [];
   }
 
-  buildInitialQueue = (searchQuery) => {
-    this.searchTracks(searchQuery, 1000)
-    .then((searchResults) => {
-      this.searchResults = searchResults;
-      this.fillQueue();
-    });
+  buildNewQueue = (searchQuery) => {
+    if (this.searchResults.length === 0) {
+      this.searchTracks(searchQuery, NUM_TRACKS_TO_SEARCH)
+      .then((searchResults) => {
+        this.searchResults = searchResults;
+        this.fillQueue([]);
+      });
+    } else {
+      this.usedTrackIds.clear();
+      this.fillQueue([]);
+    }
   };
 
   searchTracks = (searchQuery, totalNumTracksToSearch) => {
@@ -64,10 +74,10 @@ class Content extends React.Component {
     });
   };
 
-  fillQueue = (trackToBeSoftDeleted) => {
+  fillQueue = (existingQueue, trackToBeSoftDeleted) => {
     const trackQueue = [];
     let queueDurationMs = 0;
-    this.state.trackQueue.forEach((track) => {
+    existingQueue.forEach((track) => {
       if (!track.softDeleted) {
         if (track.id === trackToBeSoftDeleted) {
           trackQueue.push(Object.assign({}, track, {softDeleted: true}));
@@ -93,27 +103,31 @@ class Content extends React.Component {
   };
 
   onStart = () => {
+    setInterval(() => {
+      this.setState({timeElapsedMs: this.state.timeElapsedMs + 1000});
+    }, 1000);
     this.setState({isStarted: true});
   };
 
-  getClockFormat = (ms) => {
-    const totalSeconds = Math.ceil(ms / 1000);
-    const totalMinutes = Math.floor(totalSeconds / 60);
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    const seconds = totalSeconds % 60;
-    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
-    const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds;
-    return `${hours}:${formattedMinutes}:${formattedSeconds}`;
+  setStudyDurationMs = (ms) => {
+    this.setState({studyDurationMs: ms, isTimeSet: true});
   };
 
   render() {
     return (
         <div className="content">
+          <TimeInput
+              onTimeSet={this.setStudyDurationMs}
+              isTimeSet={this.state.isTimeSet} />
           <SearchInput
-              onSearch={this.buildInitialQueue}
-              isStarted={this.state.isStarted} />
-          {`queue duration: ${this.getClockFormat(this.state.queueDurationMs)}`}
+              onSearch={this.buildNewQueue}
+              isStarted={this.state.isStarted}
+              isTimeSet={this.state.isTimeSet} />
+          <Clock
+              queueDurationMs={this.state.queueDurationMs}
+              studyDurationMs={this.state.studyDurationMs}
+              timeElapsedMs={this.state.timeElapsedMs}
+              isTimeSet={this.state.isTimeSet} />
           <TrackQueue
               accessToken={this.props.accessToken}
               deviceId={this.props.deviceId}
