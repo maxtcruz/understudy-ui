@@ -13,128 +13,95 @@ class Content extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      trackQueue: [],
       queueDurationMs: 0,
       studyDurationMs: 0,
       timeElapsedMs: 0,
-      isStarted: false,
-      isTimeSet: false
+      genre: "",
+      searchResults: []
     };
-    this.usedTrackIds = new Set();
-    this.searchResults = [];
   }
 
-  buildNewQueue = (searchQuery) => {
-    if (this.searchResults.length === 0) {
-      this.searchTracks(searchQuery, NUM_TRACKS_TO_SEARCH)
-      .then((searchResults) => {
-        this.searchResults = searchResults;
-        this.fillQueue([]);
-      });
-    } else {
-      this.usedTrackIds.clear();
-      this.fillQueue([]);
-    }
+  onSetGenre = (genre) => {
+    this.searchTracks(genre, NUM_TRACKS_TO_SEARCH);
   };
 
   searchTracks = (searchQuery, totalNumTracksToSearch) => {
-    return new Promise((resolve) => {
-      const searchResults = [];
-      let offset = 0;
-      while (offset < totalNumTracksToSearch) {
-        fetch(getSpotifySearchEndpoint("genre:" + searchQuery, "track", offset,
-            50), {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${this.props.accessToken}`
-          }
-        })
-        .then(handleErrors)
-        .then((response) => {
-          response.json().then((data) => {
-            data.tracks.items.forEach((item) => {
-              searchResults.push({
-                trackName: item.name,
-                artist: item.artists[0].name,
-                id: item.id,
-                explicit: item.explicit,
-                durationMs: item.duration_ms
-              });
-            });
-            if (searchResults.length >= totalNumTracksToSearch) {
-              resolve(searchResults);
-            }
-          });
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-        offset += 50;
-      }
-    });
-  };
-
-  fillQueue = (existingQueue, trackToBeSoftDeleted) => {
-    const trackQueue = [];
-    let queueDurationMs = 0;
-    existingQueue.forEach((track) => {
-      if (!track.softDeleted) {
-        if (track.id === trackToBeSoftDeleted) {
-          trackQueue.push(Object.assign({}, track, {softDeleted: true}));
-        } else {
-          queueDurationMs += track.durationMs;
-          trackQueue.push(track);
+    const searchResults = [];
+    let offset = 0;
+    while (offset < totalNumTracksToSearch) {
+      fetch(getSpotifySearchEndpoint("genre:" + searchQuery, "track", offset,
+          50), {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${this.props.accessToken}`
         }
-      } else {
-          trackQueue.push(track);
-      }
-    });
-    while (queueDurationMs < this.state.studyDurationMs) {
-      let trackToAdd = this.searchResults[Math.floor(Math.random() * this.searchResults.length)];
-      while (this.usedTrackIds.has(trackToAdd.id)) {
-        trackToAdd = this.searchResults[Math.floor(Math.random() * this.searchResults.length)];
-      }
-      this.usedTrackIds.add(trackToAdd.id);
-      trackToAdd.index = trackQueue.length;
-      queueDurationMs += trackToAdd.durationMs;
-      trackQueue.push(trackToAdd);
+      })
+      .then(handleErrors)
+      .then((response) => {
+        response.json().then((data) => {
+          data.tracks.items.forEach((item) => {
+            searchResults.push({
+              trackName: item.name,
+              artist: item.artists[0].name,
+              id: item.id,
+              explicit: item.explicit,
+              durationMs: item.duration_ms
+            });
+          });
+          if (searchResults.length >= totalNumTracksToSearch) {
+            this.setState({searchResults});
+          }
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+      offset += 50;
     }
-    this.setState({trackQueue, queueDurationMs});
   };
 
   onStart = () => {
-    setInterval(() => {
-      this.setState({timeElapsedMs: this.state.timeElapsedMs + 1000});
+    const clockTimer = setInterval(() => {
+      if (this.state.timeElapsedMs < this.state.studyDurationMs) {
+        this.setState({timeElapsedMs: this.state.timeElapsedMs + 1000});
+      } else {
+        clearInterval(clockTimer);
+      }
     }, 1000);
-    this.setState({isStarted: true});
   };
 
   setStudyDurationMs = (ms) => {
-    this.setState({studyDurationMs: ms, isTimeSet: true});
+    this.setState({studyDurationMs: ms});
   };
 
   render() {
+    const timeInputJsx = !this.state.studyDurationMs
+        ? <TimeInput onSetTime={this.setStudyDurationMs} />
+        : "";
+    const searchInputJsx = this.state.studyDurationMs && this.state.searchResults.length === 0
+        ? <SearchInput onSetGenre={this.onSetGenre} />
+        : "";
+    const clockJsx = this.state.studyDurationMs
+        ? <Clock
+            queueDurationMs={this.state.queueDurationMs}
+            studyDurationMs={this.state.studyDurationMs}
+            timeElapsedMs={this.state.timeElapsedMs} />
+        : "";
+    const trackQueueJsx = this.state.searchResults.length > 0
+        ? <TrackQueue
+            accessToken={this.props.accessToken}
+            deviceId={this.props.deviceId}
+            searchResults={this.state.searchResults}
+            studyDurationMs={this.state.studyDurationMs}
+            isTrackOver={this.props.isTrackOver}
+            onStart={this.onStart} />
+        : "";
     return (
         <div className="content">
-          <TimeInput
-              onTimeSet={this.setStudyDurationMs}
-              isTimeSet={this.state.isTimeSet} />
-          <SearchInput
-              onSearch={this.buildNewQueue}
-              isStarted={this.state.isStarted}
-              isTimeSet={this.state.isTimeSet} />
-          <Clock
-              queueDurationMs={this.state.queueDurationMs}
-              studyDurationMs={this.state.studyDurationMs}
-              timeElapsedMs={this.state.timeElapsedMs}
-              isTimeSet={this.state.isTimeSet} />
-          <TrackQueue
-              accessToken={this.props.accessToken}
-              deviceId={this.props.deviceId}
-              trackQueue={this.state.trackQueue}
-              isTrackOver={this.props.isTrackOver}
-              onStart={this.onStart}
-              fillQueue={this.fillQueue} />
+          {timeInputJsx}
+          {searchInputJsx}
+          {clockJsx}
+          {trackQueueJsx}
         </div>
     );
   }

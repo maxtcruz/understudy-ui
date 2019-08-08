@@ -15,13 +15,10 @@ class SearchInput extends React.Component {
   };
 
   handleOnClick = () => {
-    this.props.onSearch(this.state.searchQuery);
+    this.props.onSetGenre(this.state.searchQuery);
   };
 
   render() {
-    if (this.props.isStarted || !this.props.isTimeSet) {
-      return null;
-    }
     return (
         <div className="track-searcher">
           <input
@@ -38,9 +35,7 @@ class SearchInput extends React.Component {
 }
 
 SearchInput.propTypes = {
-  onSearch: PropTypes.func.isRequired,
-  isStarted: PropTypes.bool.isRequired,
-  isTimeSet: PropTypes.bool.isRequired
+  onSetGenre: PropTypes.func.isRequired
 };
 
 export default SearchInput;

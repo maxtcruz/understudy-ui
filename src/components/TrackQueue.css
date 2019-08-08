@@ -20,6 +20,11 @@
 
 }
 
+.queue-duration {
+  margin-left: 18%;
+  font-size: 0.8rem;
+}
+
 .up-next {
   margin-left: 21.7%;
 }

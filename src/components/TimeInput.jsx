@@ -19,16 +19,13 @@ class TimeInput extends React.Component {
   handleOnClick = () => {
     const hours = Number(this.state.hours);
     if (hours) {
-      this.props.onTimeSet(hours * 3600000);
+      this.props.onSetTime(hours * 3600000);
     } else {
       this.setState({hours: "", error: "please enter a valid number"});
     }
   };
 
   render() {
-    if (this.props.isTimeSet) {
-      return null;
-    }
     let errorJsx;
     if (this.state.error) {
       errorJsx = (
@@ -55,8 +52,7 @@ class TimeInput extends React.Component {
 }
 
 TimeInput.propTypes = {
-  isTimeSet: PropTypes.bool.isRequired,
-  onTimeSet: PropTypes.func.isRequired
+  onSetTime: PropTypes.func.isRequired
 };
 
 export default TimeInput;
