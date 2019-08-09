@@ -5,15 +5,15 @@ import {getTrackDisplayName} from "../util/SpotifyWebAPIHelpers";
 import {getSpotifyPlayEndpoint} from "../resources/RestEndpoints";
 import {handleErrors} from "../util/RestHelpers";
 import {getClockFormat} from "../util/ClockHelpers";
-//TODO: cleanup queue construction functions
+
 class TrackQueue extends React.Component {
   constructor(props) {
     super(props);
     this.usedTrackIds = new Set();
-    const queueInfo = this.constructQueue();
+    const {trackQueue, queueDurationMs} = this.fillQueue();
     this.state = {
-      trackQueue: queueInfo.trackQueue,
-      queueDurationMs: queueInfo.queueDurationMs,
+      trackQueue,
+      queueDurationMs,
       isStarted: false,
       currentTrackIndex: -1
     };
@@ -28,13 +28,56 @@ class TrackQueue extends React.Component {
     }
   }
 
-  findNextTrack = (trackQueue) => {
-    let index = this.state.currentTrackIndex + 1;
-    while (trackQueue[index].softDeleted) {
-      index++;
+  buildNewQueue = () => {
+    this.usedTrackIds.clear();
+    const {trackQueue, queueDurationMs} = this.fillQueue();
+    this.setState({
+      trackQueue,
+      queueDurationMs
+    });
+  };
+
+  fillQueue = (existingQueue = [], existingQueueDurationMs = 0) => {
+    const {studyDurationMs, searchResults} = this.props;
+    const trackQueue = existingQueue;
+    let queueDurationMs = existingQueueDurationMs;
+    while (queueDurationMs < studyDurationMs) {
+      let trackToAdd = searchResults[Math.floor(Math.random() * searchResults.length)];
+      while (this.usedTrackIds.has(trackToAdd.id)) {
+        trackToAdd = searchResults[Math.floor(Math.random() * searchResults.length)];
+      }
+      this.usedTrackIds.add(trackToAdd.id);
+      trackToAdd.index = trackQueue.length;
+      queueDurationMs += trackToAdd.durationMs;
+      trackQueue.push(trackToAdd);
     }
-    this.setState({currentTrackIndex: index});
-    return trackQueue[index];
+    return {
+      trackQueue,
+      queueDurationMs
+    };
+  };
+
+  replaceTrack = (trackToBeSoftDeleted) => {
+    const existingTrackQueue = [];
+    let existingQueueDurationMs = 0;
+    this.state.trackQueue.forEach((track) => {
+      if (!track.softDeleted) {
+        if (track.id === trackToBeSoftDeleted) {
+          existingTrackQueue.push(Object.assign({}, track, {softDeleted: true}));
+        } else {
+          existingQueueDurationMs += track.durationMs;
+          existingTrackQueue.push(track);
+        }
+      } else {
+        existingTrackQueue.push(track);
+      }
+    });
+    const {trackQueue, queueDurationMs} = this.fillQueue(existingTrackQueue, existingQueueDurationMs);
+    this.setState({
+      trackQueue,
+      queueDurationMs
+    });
+    return trackQueue;
   };
 
   startQueue = () => {
@@ -60,74 +103,33 @@ class TrackQueue extends React.Component {
   };
 
   skip = () => {
-    const {trackQueue} = this.state;
-    const filledQueue = this.fillQueue(trackQueue, trackQueue[this.state.currentTrackIndex].id);
+    const {trackQueue, currentTrackIndex} = this.state;
+    const filledQueue = this.replaceTrack(trackQueue[currentTrackIndex].id);
     const nextTrack = this.findNextTrack(filledQueue);
     this.playTrack(nextTrack.id);
   };
 
-  buildNewQueue = () => {
-    this.usedTrackIds.clear();
-    return this.fillQueue([]);
-  };
-
-  fillQueue = (existingQueue, trackToBeSoftDeleted) => {
-    const {studyDurationMs, searchResults} = this.props;
-    const trackQueue = [];
-    let queueDurationMs = 0;
-    existingQueue.forEach((track) => {
-      if (!track.softDeleted) {
-        if (track.id === trackToBeSoftDeleted) {
-          trackQueue.push(Object.assign({}, track, {softDeleted: true}));
-        } else {
-          queueDurationMs += track.durationMs;
-          trackQueue.push(track);
-        }
-      } else {
-        trackQueue.push(track);
-      }
-    });
-    while (queueDurationMs < studyDurationMs) {
-      let trackToAdd = searchResults[Math.floor(Math.random() * searchResults.length)];
-      while (this.usedTrackIds.has(trackToAdd.id)) {
-        trackToAdd = searchResults[Math.floor(Math.random() * searchResults.length)];
-      }
-      this.usedTrackIds.add(trackToAdd.id);
-      trackToAdd.index = trackQueue.length;
-      queueDurationMs += trackToAdd.durationMs;
-      trackQueue.push(trackToAdd);
+  findNextTrack = (trackQueue) => {
+    let index = this.state.currentTrackIndex + 1;
+    while (trackQueue[index].softDeleted) {
+      index++;
     }
-    this.setState({trackQueue, queueDurationMs});
-    return trackQueue;
-  };
-
-  constructQueue = (existingQueue) => {
-    const {studyDurationMs, searchResults} = this.props;
-    const trackQueue = existingQueue || [];
-    let queueDurationMs = 0;
-    while (queueDurationMs < studyDurationMs) {
-      let trackToAdd = searchResults[Math.floor(Math.random() * searchResults.length)];
-      while (this.usedTrackIds.has(trackToAdd.id)) {
-        trackToAdd = searchResults[Math.floor(Math.random() * searchResults.length)];
-      }
-      this.usedTrackIds.add(trackToAdd.id);
-      trackToAdd.index = trackQueue.length;
-      queueDurationMs += trackToAdd.durationMs;
-      trackQueue.push(trackToAdd);
-    }
-    return {
-      trackQueue,
-      queueDurationMs
-    };
+    this.setState({currentTrackIndex: index});
+    return trackQueue[index];
   };
 
   render() {
-    const {trackQueue} = this.state;
+    const {
+      trackQueue,
+      isStarted,
+      currentTrackIndex,
+      queueDurationMs
+    } = this.state;
     if (trackQueue.length === 0) {
       return "building queue...";
     }
     let startButtonJsx;
-    if (!this.state.isStarted) {
+    if (!isStarted) {
       startButtonJsx = (
           <div className="start-button">
             <button onClick={this.buildNewQueue}>
@@ -140,7 +142,7 @@ class TrackQueue extends React.Component {
       );
     }
     let nowPlayingJsx;
-    if (this.state.isStarted) {
+    if (isStarted) {
       nowPlayingJsx = (
           <div className="now-playing">
             <button
@@ -148,8 +150,8 @@ class TrackQueue extends React.Component {
                 className="skip-button">
               skip
             </button>
-            now playing: {this.state.currentTrackIndex > -1
-              ? getTrackDisplayName(trackQueue[this.state.currentTrackIndex])
+            now playing: {currentTrackIndex > -1
+              ? getTrackDisplayName(trackQueue[currentTrackIndex])
               : ""}
           </div>
       );
@@ -157,11 +159,11 @@ class TrackQueue extends React.Component {
     return (
         <div className="track-queue">
           <div className="track-queue-header">
-            <div className="queue-duration">
-              queue duration: {getClockFormat(this.state.queueDurationMs)}
-            </div>
             {startButtonJsx}
             {nowPlayingJsx}
+            <div className="queue-duration">
+              queue duration: {getClockFormat(queueDurationMs)}
+            </div>
             <h3 className="up-next">
               up next
             </h3>
@@ -169,11 +171,11 @@ class TrackQueue extends React.Component {
           <div>
             <ul>
               {trackQueue.map((track) => {
-                if (track.index > this.state.currentTrackIndex && !track.softDeleted) {
+                if (track.index > currentTrackIndex && !track.softDeleted) {
                   return (
                       <li key={track.id}>
                         {getTrackDisplayName(track)}
-                        <button onClick={() => {this.fillQueue(trackQueue, track.id)}}>remove</button>
+                        <button onClick={() => {this.replaceTrack(track.id)}}>remove</button>
                       </li>
                   );
                 } else {
