@@ -1,22 +1,26 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import './AuthButton.css';
+import './AuthScreen.css';
 import {getSpotifyAuthCodeEndpoint} from "../resources/RestEndpoints";
-import CookieHelpers from "../util/CookieHelpers";
-import {SPOTIFY_ACCESS_TOKEN} from "../constants/CookieConstants";
+import Player from "./Player";
 
-const AuthButton = (props) => {
+const AuthScreen = (props) => {
+  const {
+    authorizationCode,
+    authorizationError,
+    accessToken
+  } = props;
+
   const handleAuthButtonClick = () => {
-    CookieHelpers.removeCookie(SPOTIFY_ACCESS_TOKEN);
     window.location.assign(getSpotifyAuthCodeEndpoint());
   };
 
-  if (props.accessToken) {
-    return props.children;
+  if (accessToken) {
+    return <Player accessToken={accessToken} />
   }
 
   let authorizationErrorJsx;
-  if (props.authorizationError) {
+  if (authorizationError) {
     authorizationErrorJsx = (
         <div className="auth-error">
           understudy needs access to your Spotify account info to function.
@@ -25,7 +29,7 @@ const AuthButton = (props) => {
   }
 
   let authorizationButtonJsx;
-  if (!props.authorizationCode) {
+  if (!authorizationCode) {
     authorizationButtonJsx = (
         <button onClick={handleAuthButtonClick}>
           connect your Spotify account to understudy
@@ -41,10 +45,10 @@ const AuthButton = (props) => {
   );
 };
 
-AuthButton.propTypes = {
+AuthScreen.propTypes = {
   authorizationCode: PropTypes.string,
   authorizationError: PropTypes.string,
   accessToken: PropTypes.string
 };
 
-export default AuthButton;
+export default AuthScreen;
