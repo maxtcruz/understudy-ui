@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import "./Clock.css";
-import {getClockFormat} from "../util/ClockHelpers";
+import {getClockFormat} from "../../util/ClockHelpers";
 
 const Clock = (props) => {
   const getTimeRemaining = () => {

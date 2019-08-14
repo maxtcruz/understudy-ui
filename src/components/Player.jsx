@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Script from "react-load-script";
 import './Player.css';
-import Content from "./Content";
+import Content from "./content/Content";
 import {loadPlayer} from "../util/SpotifyWebPlaybackSDKHelpers";
 
 class Player extends React.Component {
@@ -30,6 +30,9 @@ class Player extends React.Component {
       player.addListener("ready", ({device_id}) => {
         this.setState({deviceId: device_id});
       });
+      player.on('playback_error', ({message}) => {
+        console.error(message);
+      });
       player.connect();
     })
   };
@@ -40,7 +43,8 @@ class Player extends React.Component {
         ? <Content
             accessToken={this.props.accessToken}
             deviceId={this.state.deviceId}
-            isTrackOver={this.state.isTrackOver} />
+            isTrackOver={this.state.isTrackOver}
+            hasPlaybackError={this.state.hasPlaybackError} />
         : <div className="loading">loading...</div>;
     return (
         <div className="player">

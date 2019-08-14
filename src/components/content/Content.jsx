@@ -4,10 +4,10 @@ import './Content.css';
 import TimeInput from "./TimeInput";
 import SearchInput from "./SearchInput";
 import Clock from "./Clock";
-import TrackQueue from "./TrackQueue";
-import {getSpotifySearchEndpoint} from "../resources/RestEndpoints";
-import {handleErrors} from "../util/RestHelpers";
-import {NUM_TRACKS_TO_SEARCH} from "../constants/NumberConstants";
+import TrackQueue from "./trackQueue/TrackQueue";
+import {getSpotifySearchEndpoint} from "../../resources/RestEndpoints";
+import {handleErrors} from "../../util/RestHelpers";
+import {NUM_TRACKS_TO_SEARCH} from "../../constants/NumberConstants";
 
 class Content extends React.Component {
   constructor(props) {

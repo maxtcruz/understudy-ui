@@ -1,10 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import './TrackQueue.css';
-import {getTrackDisplayName} from "../util/SpotifyWebAPIHelpers";
-import {getSpotifyPlayEndpoint} from "../resources/RestEndpoints";
-import {handleErrors} from "../util/RestHelpers";
-import {getClockFormat} from "../util/ClockHelpers";
+import {getTrackDisplayName} from "../../../util/SpotifyWebAPIHelpers";
+import {getSpotifyPlayEndpoint} from "../../../resources/RestEndpoints";
+import {handleErrors} from "../../../util/RestHelpers";
+import {getClockFormat} from "../../../util/ClockHelpers";
+import StartButton from "./StartButton";
+import NowPlaying from "./NowPlaying";
 
 class TrackQueue extends React.Component {
   constructor(props) {
@@ -128,34 +130,17 @@ class TrackQueue extends React.Component {
     if (trackQueue.length === 0) {
       return "building queue...";
     }
-    let startButtonJsx;
-    if (!isStarted) {
-      startButtonJsx = (
-          <div className="start-button">
-            <button onClick={this.buildNewQueue}>
-              build new queue
-            </button>
-            <button onClick={this.startQueue}>
-              start
-            </button>
-          </div>
-      );
-    }
-    let nowPlayingJsx;
-    if (isStarted) {
-      nowPlayingJsx = (
-          <div className="now-playing">
-            <button
-                onClick={this.skip}
-                className="skip-button">
-              skip
-            </button>
-            now playing: {currentTrackIndex > -1
-              ? getTrackDisplayName(trackQueue[currentTrackIndex])
-              : ""}
-          </div>
-      );
-    }
+    const startButtonJsx = !isStarted
+        ? <StartButton
+            buildNewQueue={this.buildNewQueue}
+            startQueue={this.startQueue} />
+        : "";
+    const nowPlayingJsx = isStarted
+        ? <NowPlaying
+            skip={this.skip}
+            currentTrackIndex={currentTrackIndex}
+            trackQueue={trackQueue} />
+        : "";
     return (
         <div className="track-queue">
           <div className="track-queue-header">
