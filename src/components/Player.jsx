@@ -31,6 +31,8 @@ class Player extends React.Component {
         this.setState({deviceId: device_id});
       });
       player.on('playback_error', ({message}) => {
+        // was seeing a weird widevine playback issue. in the case it returns,
+        // force TrackQueue to playCurrentTrack() again, possibly with ref? (ick)
         console.error(message);
       });
       player.connect();

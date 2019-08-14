@@ -7,6 +7,7 @@ import {handleErrors} from "../../../util/RestHelpers";
 import {getClockFormat} from "../../../util/ClockHelpers";
 import StartButton from "./StartButton";
 import NowPlaying from "./NowPlaying";
+import CurrentPlaylist from "./CurrentPlaylist";
 
 class TrackQueue extends React.Component {
   constructor(props) {
@@ -25,8 +26,10 @@ class TrackQueue extends React.Component {
     if (!prevProps.isTrackOver
         && this.props.isTrackOver
         && this.state.currentTrackIndex < this.state.trackQueue.length - 1) {
-      const nextTrack = this.findNextTrack(this.state.trackQueue);
-      this.playTrack(nextTrack.id);
+      this.advanceToNextTrack()
+      .then(() => {
+        this.playCurrentTrack();
+      });
     }
   }
 
@@ -60,43 +63,49 @@ class TrackQueue extends React.Component {
   };
 
   replaceTrack = (trackToBeSoftDeleted) => {
-    const existingTrackQueue = [];
-    let existingQueueDurationMs = 0;
-    this.state.trackQueue.forEach((track) => {
-      if (!track.softDeleted) {
-        if (track.id === trackToBeSoftDeleted) {
-          existingTrackQueue.push(Object.assign({}, track, {softDeleted: true}));
+    return new Promise((resolve) => {
+      const existingTrackQueue = [];
+      let existingQueueDurationMs = 0;
+      this.state.trackQueue.forEach((track) => {
+        if (!track.softDeleted) {
+          if (track.id === trackToBeSoftDeleted) {
+            existingTrackQueue.push(Object.assign({}, track, {softDeleted: true}));
+          } else {
+            existingQueueDurationMs += track.durationMs;
+            existingTrackQueue.push(track);
+          }
         } else {
-          existingQueueDurationMs += track.durationMs;
           existingTrackQueue.push(track);
         }
-      } else {
-        existingTrackQueue.push(track);
-      }
+      });
+      const {trackQueue, queueDurationMs} = this.fillQueue(existingTrackQueue, existingQueueDurationMs);
+      this.setState({
+        trackQueue,
+        queueDurationMs
+      }, () => {
+        resolve();
+      });
     });
-    const {trackQueue, queueDurationMs} = this.fillQueue(existingTrackQueue, existingQueueDurationMs);
-    this.setState({
-      trackQueue,
-      queueDurationMs
-    });
-    return trackQueue;
   };
 
   startQueue = () => {
-    const firstTrack = this.findNextTrack(this.state.trackQueue);
-    this.playTrack(firstTrack.id);
+    this.advanceToNextTrack()
+    .then(() => {
+      this.playCurrentTrack();
+    });
     this.props.onStart();
     this.setState({isStarted: true});
   };
 
-  playTrack = (trackId) => {
+  playCurrentTrack = () => {
     const {deviceId, accessToken} = this.props;
+    const {trackQueue, currentTrackIndex} = this.state;
     fetch(getSpotifyPlayEndpoint(deviceId), {
       method: "PUT",
       headers: {
         "Authorization": `Bearer ${accessToken}`
       },
-      body: JSON.stringify({"uris": [`spotify:track:${trackId}`]})
+      body: JSON.stringify({"uris": [`spotify:track:${trackQueue[currentTrackIndex].id}`]})
     })
     .then(handleErrors)
     .catch((err) => {
@@ -106,18 +115,26 @@ class TrackQueue extends React.Component {
 
   skip = () => {
     const {trackQueue, currentTrackIndex} = this.state;
-    const filledQueue = this.replaceTrack(trackQueue[currentTrackIndex].id);
-    const nextTrack = this.findNextTrack(filledQueue);
-    this.playTrack(nextTrack.id);
+    this.replaceTrack(trackQueue[currentTrackIndex].id)
+    .then(() => {
+      this.advanceToNextTrack()
+      .then(() => {
+        this.playCurrentTrack();
+      });
+    });
   };
 
-  findNextTrack = (trackQueue) => {
-    let index = this.state.currentTrackIndex + 1;
-    while (trackQueue[index].softDeleted) {
-      index++;
-    }
-    this.setState({currentTrackIndex: index});
-    return trackQueue[index];
+  advanceToNextTrack = () => {
+    return new Promise((resolve) => {
+      const {trackQueue, currentTrackIndex} = this.state;
+      let index = currentTrackIndex + 1;
+      while (trackQueue[index].softDeleted) {
+        index++;
+      }
+      this.setState({currentTrackIndex: index}, () => {
+        resolve();
+      });
+    });
   };
 
   render() {
@@ -168,6 +185,9 @@ class TrackQueue extends React.Component {
                 }
               })}
             </ul>
+            <CurrentPlaylist
+              trackQueue={trackQueue}
+              currentTrackIndex={currentTrackIndex} />
           </div>
         </div>
     );
