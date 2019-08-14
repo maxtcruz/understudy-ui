@@ -45,7 +45,8 @@ class Content extends React.Component {
               artist: item.artists[0].name,
               id: item.id,
               explicit: item.explicit,
-              durationMs: item.duration_ms
+              durationMs: item.duration_ms,
+              uri: item.uri
             });
           });
           if (searchResults.length >= totalNumTracksToSearch) {
@@ -91,6 +92,7 @@ class Content extends React.Component {
         ? <TrackQueue
             accessToken={this.props.accessToken}
             deviceId={this.props.deviceId}
+            loggedInUserId={this.props.loggedInUserId}
             searchResults={this.state.searchResults}
             studyDurationMs={this.state.studyDurationMs}
             isTrackOver={this.props.isTrackOver}
@@ -110,7 +112,8 @@ class Content extends React.Component {
 Content.propTypes = {
   accessToken: PropTypes.string.isRequired,
   deviceId: PropTypes.string.isRequired,
-  isTrackOver: PropTypes.bool.isRequired
+  isTrackOver: PropTypes.bool.isRequired,
+  loggedInUserId: PropTypes.string.isRequired
 };
 
 export default Content;

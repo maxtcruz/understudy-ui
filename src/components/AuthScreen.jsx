@@ -8,15 +8,20 @@ const AuthScreen = (props) => {
   const {
     authorizationCode,
     authorizationError,
-    accessToken
+    accessToken,
+    loggedInUserId
   } = props;
 
   const handleAuthButtonClick = () => {
     window.location.assign(getSpotifyAuthCodeEndpoint());
   };
 
-  if (accessToken) {
-    return <Player accessToken={accessToken} />
+  if (accessToken && loggedInUserId) {
+    return (
+        <Player
+            accessToken={accessToken}
+            loggedInUserId={loggedInUserId} />
+    );
   }
 
   let authorizationErrorJsx;
@@ -48,7 +53,8 @@ const AuthScreen = (props) => {
 AuthScreen.propTypes = {
   authorizationCode: PropTypes.string,
   authorizationError: PropTypes.string,
-  accessToken: PropTypes.string
+  accessToken: PropTypes.string,
+  loggedInUserId: PropTypes.string
 };
 
 export default AuthScreen;

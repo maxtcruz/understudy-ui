@@ -46,7 +46,7 @@ class Player extends React.Component {
             accessToken={this.props.accessToken}
             deviceId={this.state.deviceId}
             isTrackOver={this.state.isTrackOver}
-            hasPlaybackError={this.state.hasPlaybackError} />
+            loggedInUserId={this.props.loggedInUserId} />
         : <div className="loading">loading...</div>;
     return (
         <div className="player">
@@ -62,7 +62,8 @@ class Player extends React.Component {
 }
 
 Player.propTypes = {
-  accessToken: PropTypes.string
+  accessToken: PropTypes.string.isRequired,
+  loggedInUserId: PropTypes.string.isRequired
 };
 
 export default Player;

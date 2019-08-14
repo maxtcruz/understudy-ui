@@ -20,3 +20,7 @@
 .hide-element {
   display: none;
 }
+
+.up-next-tracks {
+  float: left;
+}
