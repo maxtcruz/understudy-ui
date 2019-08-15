@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import "./CurrentPlaylist.css";
-import {getTrackDisplayName} from "../../../util/SpotifyWebAPIHelpers";
+import {getFormattedTrackName} from "../../../util/SpotifyWebAPIHelpers";
 import {
   getSpotifyAddTracksToPlaylistEndpoint,
   getSpotifyCreatePlaylistEndpoint
@@ -70,9 +70,9 @@ const CurrentPlaylist = (props) => {
               trackNumber++;
               return (
                   <li key={track.id}>
-                    {trackNumber} {getTrackDisplayName(track)}
+                    {trackNumber} {getFormattedTrackName(track)}
                   </li>
-              )
+              );
             } else {
               return null;
             }

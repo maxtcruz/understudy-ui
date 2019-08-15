@@ -42,7 +42,7 @@ class Content extends React.Component {
           data.tracks.items.forEach((item) => {
             searchResults.push({
               trackName: item.name,
-              artist: item.artists[0].name,
+              artists: item.artists,
               id: item.id,
               explicit: item.explicit,
               durationMs: item.duration_ms,

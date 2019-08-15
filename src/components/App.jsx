@@ -6,20 +6,20 @@ import {
   getSpotifyAccessTokenEndpoint, getSpotifyLoggedInUserInfoEndpoint,
   getSpotifyRefreshAccessTokenEndpoint
 } from "../resources/RestEndpoints";
-import CookieHelpers from "../util/CookieHelpers";
 import {
   SPOTIFY_ACCESS_TOKEN,
   SPOTIFY_REFRESH_TOKEN,
-  SPOTIFY_ACCESS_TOKEN_EXPIRY
-} from "../constants/CookieConstants";
+  SPOTIFY_ACCESS_TOKEN_EXPIRY,
+  SPOTIFY_LOGGED_IN_USER_ID
+} from "../constants/LocalStorageConstants";
 import {handleErrors} from "../util/RestHelpers";
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     const urlParamsMap = getUrlParamsMap(window.location.href);
-    this.refreshToken = CookieHelpers.getCookie(SPOTIFY_REFRESH_TOKEN);
-    const accessTokenExpiry = CookieHelpers.getCookie(SPOTIFY_ACCESS_TOKEN_EXPIRY) || 0;
+    this.refreshToken = window.localStorage.getItem(SPOTIFY_REFRESH_TOKEN);
+    const accessTokenExpiry = window.localStorage.getItem(SPOTIFY_ACCESS_TOKEN_EXPIRY) || 0;
     this.accessTokenExpiresInMs = accessTokenExpiry - Date.now();
     if (this.refreshToken && this.accessTokenExpiresInMs > 0) {
       this.setRefreshAccessTokenTimeout();
@@ -27,8 +27,8 @@ class App extends React.Component {
     this.state = {
       authorizationCode: urlParamsMap.get("code"),
       authorizationError: urlParamsMap.get("error"),
-      accessToken: CookieHelpers.getCookie(SPOTIFY_ACCESS_TOKEN),
-      loggedInUserId: ""
+      accessToken: window.localStorage.getItem(SPOTIFY_ACCESS_TOKEN),
+      loggedInUserId: window.localStorage.getItem(SPOTIFY_LOGGED_IN_USER_ID)
     };
   }
 
@@ -52,24 +52,14 @@ class App extends React.Component {
             expires_in,
             refresh_token
           } = data;
-          CookieHelpers.setCookie(
-              SPOTIFY_ACCESS_TOKEN,
-              access_token,
-              {maxAge: expires_in}
-          );
+          window.localStorage.setItem(SPOTIFY_ACCESS_TOKEN, access_token);
           // we set the access token to expire 1 minute earlier on our end than
           // on Spotify's end to give us some headspace for a refresh
           this.accessTokenExpiresInMs = (expires_in - 60) * 1000;
-          CookieHelpers.setCookie(
-              SPOTIFY_ACCESS_TOKEN_EXPIRY,
-              Date.now() + this.accessTokenExpiresInMs,
-              {maxAge: expires_in}
-          );
+          const accessTokenExpiry = Date.now() + this.accessTokenExpiresInMs;
+          window.localStorage.setItem(SPOTIFY_ACCESS_TOKEN_EXPIRY, accessTokenExpiry);
           if (refresh_token) {
-            CookieHelpers.setCookie(
-                SPOTIFY_REFRESH_TOKEN,
-                refresh_token
-            );
+            window.localStorage.setItem(SPOTIFY_REFRESH_TOKEN, refresh_token);
             this.refreshToken = refresh_token;
           }
           this.setRefreshAccessTokenTimeout();
@@ -80,9 +70,17 @@ class App extends React.Component {
       })
       .catch(() => {
         //TODO: throw custom exception on BE for bad request, log as warning and redirect
+        this.clearLocalStorage();
         window.location.assign("http://localhost:3000");
       });
     });
+  };
+
+  clearLocalStorage = () => {
+    window.localStorage.removeItem(SPOTIFY_ACCESS_TOKEN);
+    window.localStorage.removeItem(SPOTIFY_ACCESS_TOKEN_EXPIRY);
+    window.localStorage.removeItem(SPOTIFY_REFRESH_TOKEN);
+    window.localStorage.removeItem(SPOTIFY_LOGGED_IN_USER_ID);
   };
 
   getLoggedInUserInfo = () => {
@@ -102,15 +100,14 @@ class App extends React.Component {
         } = data;
         if (product !== "premium") {
           const authorizationError = "understudy requires a premium Spotify account";
-          CookieHelpers.removeCookie(SPOTIFY_ACCESS_TOKEN);
-          CookieHelpers.removeCookie(SPOTIFY_ACCESS_TOKEN_EXPIRY);
-          CookieHelpers.removeCookie(SPOTIFY_REFRESH_TOKEN);
+          this.clearLocalStorage();
           this.setState({
             authorizationCode: "",
             authorizationError,
             accessToken: "",
           });
         } else {
+          window.localStorage.setItem(SPOTIFY_LOGGED_IN_USER_ID, id);
           this.setState({loggedInUserId: id});
         }
       });

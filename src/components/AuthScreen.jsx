@@ -28,7 +28,7 @@ const AuthScreen = (props) => {
   if (authorizationError) {
     authorizationErrorJsx = (
         <div className="auth-error">
-          understudy needs access to your Spotify account info to function.
+          {authorizationError}
         </div>
     );
   }

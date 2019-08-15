@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import './TrackQueue.css';
-import {getTrackDisplayName} from "../../../util/SpotifyWebAPIHelpers";
+import {getFormattedTrackName} from "../../../util/SpotifyWebAPIHelpers";
 import {getSpotifyPlayEndpoint} from "../../../resources/RestEndpoints";
 import {handleErrors} from "../../../util/RestHelpers";
 import {getClockFormat} from "../../../util/ClockHelpers";
@@ -175,7 +175,7 @@ class TrackQueue extends React.Component {
               if (track.index > currentTrackIndex && !track.softDeleted) {
                 return (
                     <li key={track.id}>
-                      {getTrackDisplayName(track)}
+                      {getFormattedTrackName(track)}
                       <button onClick={() => {this.replaceTrack(track.id)}}>remove</button>
                     </li>
                 );
