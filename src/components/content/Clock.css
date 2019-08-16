@@ -1,3 +1,4 @@
 .clock {
-  height: 2rem;
+  float: left;
+  margin-left: 4rem;
 }

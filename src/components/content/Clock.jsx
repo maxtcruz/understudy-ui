@@ -4,25 +4,43 @@ import "./Clock.css";
 import {getClockFormat} from "../../util/ClockHelpers";
 
 const Clock = (props) => {
+  const {
+    studyDurationMs,
+    timeElapsedMs,
+    onChangeTime,
+    isStarted
+  } = props;
+
   const getTimeRemaining = () => {
-    return props.studyDurationMs - props.timeElapsedMs;
+    return studyDurationMs - timeElapsedMs;
   };
 
-  if (!props.studyDurationMs) {
+  if (!studyDurationMs) {
     return null;
+  }
+
+  let changeTimeButtonJsx;
+  if (!isStarted) {
+    changeTimeButtonJsx = (
+        <button onClick={() => {onChangeTime(0)}}>
+          change time
+        </button>
+    );
   }
 
   return (
       <div className="clock">
+        {changeTimeButtonJsx}
         time remaining: {getClockFormat(getTimeRemaining())}
       </div>
   );
 };
 
 Clock.propTypes = {
-  queueDurationMs: PropTypes.number.isRequired,
   studyDurationMs: PropTypes.number.isRequired,
-  timeElapsedMs: PropTypes.number.isRequired
+  timeElapsedMs: PropTypes.number.isRequired,
+  onChangeTime: PropTypes.func.isRequired,
+  isStarted: PropTypes.bool.isRequired
 };
 
 export default Clock;

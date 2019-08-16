@@ -16,6 +16,13 @@ const CurrentPlaylist = (props) => {
     currentTrackIndex
   } = props;
 
+  let playlist = [];
+  trackQueue.forEach((track) => {
+    if (track.index <= currentTrackIndex && !track.softDeleted) {
+      playlist.push(track);
+    }
+  });
+
   //TODO: handle rare case when there are > 100 tracks (see Spotify API)
   const createPlaylist = () => {
     fetch(getSpotifyCreatePlaylistEndpoint(loggedInUserId), {
@@ -30,26 +37,19 @@ const CurrentPlaylist = (props) => {
     .then((response) => {
       response.json()
       .then((data) => {
-        const tracksToSave = [];
-        trackQueue.forEach((track) => {
-          if (track.index <= currentTrackIndex && !track.softDeleted) {
-            tracksToSave.push(track.uri);
-          }
-        });
-        if (tracksToSave.length > 0) {
-          fetch(getSpotifyAddTracksToPlaylistEndpoint(data.id), {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${accessToken}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({"uris": tracksToSave})
-          })
-          .then(handleErrors)
-          .catch((err) => {
-            console.error(err);
-          })
-        }
+        const urisToSave = playlist.map((track) => {return track.uri});
+        fetch(getSpotifyAddTracksToPlaylistEndpoint(data.id), {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${accessToken}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({"uris": urisToSave})
+        })
+        .then(handleErrors)
+        .catch((err) => {
+          console.error(err);
+        })
       })
     })
     .catch((err) => {
@@ -57,20 +57,26 @@ const CurrentPlaylist = (props) => {
     });
   };
 
+  let createPlaylistButtonJsx;
+  if (playlist.length > 0) {
+    createPlaylistButtonJsx = (
+        <button onClick={createPlaylist}>
+          save playlist to Spotify account
+        </button>
+    );
+  }
   let trackNumber = 0;
 
   return (
       <div className="current-playlist">
-        <button onClick={createPlaylist}>
-          save playlist to Spotify account
-        </button>
+        {createPlaylistButtonJsx}
         <ul>
           {trackQueue.map((track) => {
             if (track.index <= currentTrackIndex && !track.softDeleted) {
               trackNumber++;
               return (
                   <li key={track.id}>
-                    {trackNumber} {getFormattedTrackName(track)}
+                    {trackNumber}. {getFormattedTrackName(track)}
                   </li>
               );
             } else {

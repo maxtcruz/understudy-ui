@@ -23,6 +23,8 @@ class App extends React.Component {
     this.accessTokenExpiresInMs = accessTokenExpiry - Date.now();
     if (this.refreshToken && this.accessTokenExpiresInMs > 0) {
       this.setRefreshAccessTokenTimeout();
+    } else {
+      this.clearLocalStorage();
     }
     this.state = {
       authorizationCode: urlParamsMap.get("code"),

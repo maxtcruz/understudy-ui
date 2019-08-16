@@ -159,37 +159,39 @@ class TrackQueue extends React.Component {
             trackQueue={trackQueue} />
         : "";
     return (
-        <div className="track-queue">
-          <div className="track-queue-header">
-            {startButtonJsx}
-            {nowPlayingJsx}
-            <div className="queue-duration">
-              queue duration: {getClockFormat(queueDurationMs)}
+        <React.Fragment>
+          <div className="track-queue">
+            <div className="track-queue-header">
+              {startButtonJsx}
+              {nowPlayingJsx}
+              <div className="queue-duration">
+                queue duration: {getClockFormat(queueDurationMs)}
+              </div>
+              <h3 className="up-next">
+                up next
+              </h3>
             </div>
-            <h3 className="up-next">
-              up next
-            </h3>
+            <ul className="up-next-tracks">
+              {trackQueue.map((track) => {
+                if (track.index > currentTrackIndex && !track.softDeleted) {
+                  return (
+                      <li key={track.id}>
+                        {getFormattedTrackName(track)}
+                        <button onClick={() => {this.replaceTrack(track.id)}}>remove</button>
+                      </li>
+                  );
+                } else {
+                  return null;
+                }
+              })}
+            </ul>
           </div>
-          <ul className="up-next-tracks">
-            {trackQueue.map((track) => {
-              if (track.index > currentTrackIndex && !track.softDeleted) {
-                return (
-                    <li key={track.id}>
-                      {getFormattedTrackName(track)}
-                      <button onClick={() => {this.replaceTrack(track.id)}}>remove</button>
-                    </li>
-                );
-              } else {
-                return null;
-              }
-            })}
-          </ul>
           <CurrentPlaylist
               loggedInUserId={this.props.loggedInUserId}
               accessToken={this.props.accessToken}
               trackQueue={trackQueue}
               currentTrackIndex={currentTrackIndex} />
-        </div>
+        </React.Fragment>
     );
   }
 }

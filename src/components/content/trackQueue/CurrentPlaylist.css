@@ -1,4 +1,5 @@
 .current-playlist {
-  float: left;
+  float: right;
   font-size: 0.8rem;
+  max-width: 36%;
 }

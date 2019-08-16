@@ -1,5 +1,8 @@
 .now-playing {
-
+  position: fixed;
+  left: 0rem;
+  bottom: 1rem;
+  margin-left: 33%;
 }
 
 .skip-button {

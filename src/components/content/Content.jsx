@@ -13,11 +13,11 @@ class Content extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      queueDurationMs: 0,
       studyDurationMs: 0,
       timeElapsedMs: 0,
       genre: "",
-      searchResults: []
+      searchResults: [],
+      isStarted: false
     };
   }
 
@@ -62,6 +62,7 @@ class Content extends React.Component {
   };
 
   onStart = () => {
+    this.setState({isStarted: true});
     const clockTimer = setInterval(() => {
       if (this.state.timeElapsedMs < this.state.studyDurationMs) {
         this.setState({timeElapsedMs: this.state.timeElapsedMs + 1000});
@@ -82,12 +83,6 @@ class Content extends React.Component {
     const searchInputJsx = this.state.studyDurationMs && this.state.searchResults.length === 0
         ? <SearchInput onSetGenre={this.onSetGenre} />
         : "";
-    const clockJsx = this.state.studyDurationMs
-        ? <Clock
-            queueDurationMs={this.state.queueDurationMs}
-            studyDurationMs={this.state.studyDurationMs}
-            timeElapsedMs={this.state.timeElapsedMs} />
-        : "";
     const trackQueueJsx = this.state.searchResults.length > 0
         ? <TrackQueue
             accessToken={this.props.accessToken}
@@ -98,12 +93,19 @@ class Content extends React.Component {
             isTrackOver={this.props.isTrackOver}
             onStart={this.onStart} />
         : "";
+    const clockJsx = this.state.studyDurationMs
+        ? <Clock
+            studyDurationMs={this.state.studyDurationMs}
+            timeElapsedMs={this.state.timeElapsedMs}
+            onChangeTime={this.setStudyDurationMs}
+            isStarted={this.state.isStarted}/>
+        : "";
     return (
         <div className="content">
           {timeInputJsx}
           {searchInputJsx}
-          {clockJsx}
           {trackQueueJsx}
+          {clockJsx}
         </div>
     );
   }
