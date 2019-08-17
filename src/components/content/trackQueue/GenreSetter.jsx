@@ -20,7 +20,7 @@ class GenreSetter extends React.Component {
 
   render() {
     return (
-        <div className="track-searcher">
+        <div className="genre-setter">
           <input
               type="text"
               value={this.state.searchQuery}

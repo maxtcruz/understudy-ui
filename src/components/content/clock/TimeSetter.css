@@ -1,12 +1,7 @@
-.time-setter {
-  height: 3rem;
-}
-
 .time-error {
   color: red;
 }
 
 .time-field {
   margin-right: 1rem;
-  margin-bottom: 1rem;
 }

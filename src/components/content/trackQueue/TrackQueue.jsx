@@ -2,27 +2,37 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import './TrackQueue.css';
 import {getFormattedTrackName} from "../../../util/SpotifyWebAPIHelpers";
-import {getSpotifyPlayEndpoint} from "../../../resources/RestEndpoints";
+import {
+  getSpotifyPlayEndpoint,
+  getSpotifySearchEndpoint
+} from "../../../resources/RestEndpoints";
 import {handleErrors} from "../../../util/RestHelpers";
 import {getClockFormat} from "../../../util/ClockHelpers";
-import StartButton from "../clock/StartButton";
+import {NUM_TRACKS_TO_SEARCH} from "../../../constants/NumberConstants";
 import NowPlaying from "../NowPlaying";
 import CurrentPlaylist from "../currentPlaylist/CurrentPlaylist";
+import GenreSetter from "./GenreSetter";
 
 class TrackQueue extends React.Component {
   constructor(props) {
     super(props);
     this.usedTrackIds = new Set();
-    const {trackQueue, queueDurationMs} = this.fillQueue();
     this.state = {
-      trackQueue,
-      queueDurationMs,
-      isStarted: false,
+      searchResults: [],
+      genre: "",
+      trackQueue: [],
+      queueDurationMs: 0,
       currentTrackIndex: -1
     };
   }
 
   componentDidUpdate(prevProps) {
+    if (!prevProps.isStarted && this.props.isStarted) {
+      this.advanceToNextTrack()
+      .then(() => {
+        this.playCurrentTrack();
+      });
+    }
     if (!prevProps.isTrackOver
         && this.props.isTrackOver
         && this.state.currentTrackIndex < this.state.trackQueue.length - 1) {
@@ -31,7 +41,63 @@ class TrackQueue extends React.Component {
         this.playCurrentTrack();
       });
     }
+    if (prevProps.studyDurationMs < this.props.studyDurationMs
+        && this.state.genre) {
+      const {trackQueue, queueDurationMs} = this.fillQueue(this.state.trackQueue, this.state.queueDurationMs);
+      this.setState({trackQueue, queueDurationMs});
+    }
   }
+
+  onSetGenre = (genre) => {
+    if (genre !== this.state.genre) {
+      this.searchTracks(genre, NUM_TRACKS_TO_SEARCH)
+      .then(() => {
+        this.buildNewQueue();
+      });
+    }
+    this.setState({genre});
+    this.props.onSetGenre();
+  };
+
+  searchTracks = (searchQuery, totalNumTracksToSearch) => {
+    return new Promise((resolve) => {
+      const searchResults = [];
+      let offset = 0;
+      while (offset < totalNumTracksToSearch) {
+        fetch(getSpotifySearchEndpoint("genre:" + searchQuery, "track", offset,
+            50), {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${this.props.accessToken}`
+          }
+        })
+        .then(handleErrors)
+        .then((response) => {
+          response.json().then((data) => {
+            data.tracks.items.forEach((item) => {
+              searchResults.push({
+                trackName: item.name,
+                artists: item.artists,
+                id: item.id,
+                explicit: item.explicit,
+                durationMs: item.duration_ms,
+                uri: item.uri
+              });
+            });
+            if (searchResults.length >= totalNumTracksToSearch) {
+              this.setState({searchResults}, () => {
+                resolve();
+              });
+            }
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+        offset += 50;
+      }
+    });
+  };
 
   buildNewQueue = () => {
     this.usedTrackIds.clear();
@@ -43,7 +109,8 @@ class TrackQueue extends React.Component {
   };
 
   fillQueue = (existingQueue = [], existingQueueDurationMs = 0) => {
-    const {studyDurationMs, searchResults} = this.props;
+    const {studyDurationMs} = this.props;
+    const {searchResults} = this.state;
     const trackQueue = existingQueue;
     let queueDurationMs = existingQueueDurationMs;
     while (queueDurationMs < studyDurationMs) {
@@ -88,15 +155,6 @@ class TrackQueue extends React.Component {
     });
   };
 
-  startQueue = () => {
-    this.advanceToNextTrack()
-    .then(() => {
-      this.playCurrentTrack();
-    });
-    this.props.onStart();
-    this.setState({isStarted: true});
-  };
-
   playCurrentTrack = () => {
     const {deviceId, accessToken} = this.props;
     const {trackQueue, currentTrackIndex} = this.state;
@@ -139,18 +197,38 @@ class TrackQueue extends React.Component {
 
   render() {
     const {
-      trackQueue,
       isStarted,
+      loggedInUserId,
+      accessToken
+    } = this.props;
+    const {
+      trackQueue,
       currentTrackIndex,
-      queueDurationMs
+      queueDurationMs,
+      genre
     } = this.state;
-    if (trackQueue.length === 0) {
-      return "building queue...";
-    }
-    const startButtonJsx = !isStarted
-        ? <StartButton
-            buildNewQueue={this.buildNewQueue}
-            startQueue={this.startQueue} />
+    const genreSetterJsx = !genre
+        ? <GenreSetter onSetGenre={this.onSetGenre} />
+        : "";
+    const genreSelectedJsx = genre
+        ? <div>
+          genre selected: {this.state.genre}
+        </div>
+        : "";
+    const buildNewQueueButtonJsx = !isStarted && trackQueue.length > 0
+        ? <button onClick={this.buildNewQueue}>
+          build new queue
+        </button>
+        : "";
+    const queueDurationJsx = trackQueue.length > 0
+        ? <div className="queue-duration">
+          queue duration: {getClockFormat(queueDurationMs)}
+        </div>
+        : "";
+    const upNextJsx = trackQueue.length > 0
+        ? <h3 className="up-next">
+          up next
+        </h3>
         : "";
     const nowPlayingJsx = isStarted
         ? <NowPlaying
@@ -162,14 +240,11 @@ class TrackQueue extends React.Component {
         <React.Fragment>
           <div className="track-queue">
             <div className="track-queue-header">
-              {startButtonJsx}
-              {nowPlayingJsx}
-              <div className="queue-duration">
-                queue duration: {getClockFormat(queueDurationMs)}
-              </div>
-              <h3 className="up-next">
-                up next
-              </h3>
+              {genreSetterJsx}
+              {genreSelectedJsx}
+              {buildNewQueueButtonJsx}
+              {queueDurationJsx}
+              {upNextJsx}
             </div>
             <ul className="up-next-tracks">
               {trackQueue.map((track) => {
@@ -187,10 +262,11 @@ class TrackQueue extends React.Component {
             </ul>
           </div>
           <CurrentPlaylist
-              loggedInUserId={this.props.loggedInUserId}
-              accessToken={this.props.accessToken}
+              loggedInUserId={loggedInUserId}
+              accessToken={accessToken}
               trackQueue={trackQueue}
               currentTrackIndex={currentTrackIndex} />
+          {nowPlayingJsx}
         </React.Fragment>
     );
   }
@@ -200,10 +276,10 @@ TrackQueue.propTypes = {
   accessToken: PropTypes.string.isRequired,
   deviceId: PropTypes.string.isRequired,
   loggedInUserId: PropTypes.string.isRequired,
-  searchResults: PropTypes.array.isRequired,
   studyDurationMs: PropTypes.number.isRequired,
+  isStarted: PropTypes.bool.isRequired,
   isTrackOver: PropTypes.bool.isRequired,
-  onStart: PropTypes.func.isRequired
+  onSetGenre: PropTypes.func.isRequired
 };
 
 export default TrackQueue;

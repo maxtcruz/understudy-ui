@@ -1,13 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import './Content.css';
-import TimeSetter from "./clock/TimeSetter";
-import GenreSetter from "./trackQueue/GenreSetter";
 import Clock from "./clock/Clock";
 import TrackQueue from "./trackQueue/TrackQueue";
-import {getSpotifySearchEndpoint} from "../../resources/RestEndpoints";
-import {handleErrors} from "../../util/RestHelpers";
-import {NUM_TRACKS_TO_SEARCH} from "../../constants/NumberConstants";
 
 class Content extends React.Component {
   constructor(props) {
@@ -15,50 +10,13 @@ class Content extends React.Component {
     this.state = {
       studyDurationMs: 0,
       timeElapsedMs: 0,
-      genre: "",
-      searchResults: [],
+      isGenreSet: false,
       isStarted: false
     };
   }
 
-  onSetGenre = (genre) => {
-    this.searchTracks(genre, NUM_TRACKS_TO_SEARCH);
-  };
-
-  searchTracks = (searchQuery, totalNumTracksToSearch) => {
-    const searchResults = [];
-    let offset = 0;
-    while (offset < totalNumTracksToSearch) {
-      fetch(getSpotifySearchEndpoint("genre:" + searchQuery, "track", offset,
-          50), {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${this.props.accessToken}`
-        }
-      })
-      .then(handleErrors)
-      .then((response) => {
-        response.json().then((data) => {
-          data.tracks.items.forEach((item) => {
-            searchResults.push({
-              trackName: item.name,
-              artists: item.artists,
-              id: item.id,
-              explicit: item.explicit,
-              durationMs: item.duration_ms,
-              uri: item.uri
-            });
-          });
-          if (searchResults.length >= totalNumTracksToSearch) {
-            this.setState({searchResults});
-          }
-        });
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-      offset += 50;
-    }
+  setStudyDurationMs = (ms) => {
+    this.setState({studyDurationMs: ms});
   };
 
   onStart = () => {
@@ -72,40 +30,28 @@ class Content extends React.Component {
     }, 1000);
   };
 
-  setStudyDurationMs = (ms) => {
-    this.setState({studyDurationMs: ms});
+  onSetGenre = () => {
+    this.setState({isGenreSet: true});
   };
 
   render() {
-    const timeInputJsx = !this.state.studyDurationMs
-        ? <TimeSetter onSetTime={this.setStudyDurationMs} />
-        : "";
-    const searchInputJsx = this.state.studyDurationMs && this.state.searchResults.length === 0
-        ? <GenreSetter onSetGenre={this.onSetGenre} />
-        : "";
-    const clockJsx = this.state.studyDurationMs
-        ? <Clock
-            studyDurationMs={this.state.studyDurationMs}
-            timeElapsedMs={this.state.timeElapsedMs}
-            onChangeTime={this.setStudyDurationMs}
-            isStarted={this.state.isStarted}/>
-        : "";
-    const trackQueueJsx = this.state.searchResults.length > 0
-        ? <TrackQueue
-            accessToken={this.props.accessToken}
-            deviceId={this.props.deviceId}
-            loggedInUserId={this.props.loggedInUserId}
-            searchResults={this.state.searchResults}
-            studyDurationMs={this.state.studyDurationMs}
-            isTrackOver={this.props.isTrackOver}
-            onStart={this.onStart} />
-        : "";
     return (
         <div className="content">
-          {timeInputJsx}
-          {searchInputJsx}
-          {clockJsx}
-          {trackQueueJsx}
+          <Clock
+              studyDurationMs={this.state.studyDurationMs}
+              timeElapsedMs={this.state.timeElapsedMs}
+              isGenreSet={this.state.isGenreSet}
+              onSetTime={this.setStudyDurationMs}
+              onStart={this.onStart} />
+          <TrackQueue
+              accessToken={this.props.accessToken}
+              deviceId={this.props.deviceId}
+              loggedInUserId={this.props.loggedInUserId}
+              searchResults={this.state.searchResults}
+              studyDurationMs={this.state.studyDurationMs}
+              isStarted={this.state.isStarted}
+              isTrackOver={this.props.isTrackOver}
+              onSetGenre={this.onSetGenre} />
         </div>
     );
   }

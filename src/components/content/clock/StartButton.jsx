@@ -3,17 +3,11 @@ import PropTypes from "prop-types";
 import "./StartButton.css";
 
 const StartButton = (props) => {
-  const {
-    buildNewQueue,
-    startQueue
-  } = props;
+  const {onStart} = props;
 
   return (
       <div className="start-button">
-        <button onClick={buildNewQueue}>
-          build new queue
-        </button>
-        <button onClick={startQueue}>
+        <button onClick={onStart}>
           start
         </button>
       </div>
@@ -21,8 +15,7 @@ const StartButton = (props) => {
 };
 
 StartButton.propTypes = {
-  buildNewQueue: PropTypes.func.isRequired,
-  startQueue: PropTypes.func.isRequired
+  onStart: PropTypes.func.isRequired
 };
 
 export default StartButton;

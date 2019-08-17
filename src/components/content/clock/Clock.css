@@ -1,3 +1,7 @@
 .clock {
   flex-basis: 100%;
 }
+
+.change-time-button {
+  margin-left: 1rem;
+}
