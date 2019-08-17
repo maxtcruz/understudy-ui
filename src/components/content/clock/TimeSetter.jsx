@@ -1,8 +1,8 @@
 import React from "react";
 import PropTypes from "prop-types";
-import "./TimeInput.css";
+import "./TimeSetter.css";
 
-class TimeInput extends React.Component {
+class TimeSetter extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -51,8 +51,8 @@ class TimeInput extends React.Component {
   }
 }
 
-TimeInput.propTypes = {
+TimeSetter.propTypes = {
   onSetTime: PropTypes.func.isRequired
 };
 
-export default TimeInput;
+export default TimeSetter;

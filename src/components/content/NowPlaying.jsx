@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import "./NowPlaying.css";
-import {getFormattedTrackName} from "../../../util/SpotifyWebAPIHelpers";
+import {getFormattedTrackName} from "../../util/SpotifyWebAPIHelpers";
 
 const NowPlaying = (props) => {
   const {

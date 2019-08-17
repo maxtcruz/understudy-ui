@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import './Content.css';
-import TimeInput from "./TimeInput";
-import SearchInput from "./SearchInput";
-import Clock from "./Clock";
+import TimeSetter from "./clock/TimeSetter";
+import GenreSetter from "./trackQueue/GenreSetter";
+import Clock from "./clock/Clock";
 import TrackQueue from "./trackQueue/TrackQueue";
 import {getSpotifySearchEndpoint} from "../../resources/RestEndpoints";
 import {handleErrors} from "../../util/RestHelpers";
@@ -78,10 +78,17 @@ class Content extends React.Component {
 
   render() {
     const timeInputJsx = !this.state.studyDurationMs
-        ? <TimeInput onSetTime={this.setStudyDurationMs} />
+        ? <TimeSetter onSetTime={this.setStudyDurationMs} />
         : "";
     const searchInputJsx = this.state.studyDurationMs && this.state.searchResults.length === 0
-        ? <SearchInput onSetGenre={this.onSetGenre} />
+        ? <GenreSetter onSetGenre={this.onSetGenre} />
+        : "";
+    const clockJsx = this.state.studyDurationMs
+        ? <Clock
+            studyDurationMs={this.state.studyDurationMs}
+            timeElapsedMs={this.state.timeElapsedMs}
+            onChangeTime={this.setStudyDurationMs}
+            isStarted={this.state.isStarted}/>
         : "";
     const trackQueueJsx = this.state.searchResults.length > 0
         ? <TrackQueue
@@ -93,19 +100,12 @@ class Content extends React.Component {
             isTrackOver={this.props.isTrackOver}
             onStart={this.onStart} />
         : "";
-    const clockJsx = this.state.studyDurationMs
-        ? <Clock
-            studyDurationMs={this.state.studyDurationMs}
-            timeElapsedMs={this.state.timeElapsedMs}
-            onChangeTime={this.setStudyDurationMs}
-            isStarted={this.state.isStarted}/>
-        : "";
     return (
         <div className="content">
           {timeInputJsx}
           {searchInputJsx}
-          {trackQueueJsx}
           {clockJsx}
+          {trackQueueJsx}
         </div>
     );
   }

@@ -5,9 +5,9 @@ import {getFormattedTrackName} from "../../../util/SpotifyWebAPIHelpers";
 import {getSpotifyPlayEndpoint} from "../../../resources/RestEndpoints";
 import {handleErrors} from "../../../util/RestHelpers";
 import {getClockFormat} from "../../../util/ClockHelpers";
-import StartButton from "./StartButton";
-import NowPlaying from "./NowPlaying";
-import CurrentPlaylist from "./CurrentPlaylist";
+import StartButton from "../clock/StartButton";
+import NowPlaying from "../NowPlaying";
+import CurrentPlaylist from "../currentPlaylist/CurrentPlaylist";
 
 class TrackQueue extends React.Component {
   constructor(props) {

@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import './SearchInput.css';
+import './GenreSetter.css';
 
-class SearchInput extends React.Component {
+class GenreSetter extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -34,8 +34,8 @@ class SearchInput extends React.Component {
   }
 }
 
-SearchInput.propTypes = {
+GenreSetter.propTypes = {
   onSetGenre: PropTypes.func.isRequired
 };
 
-export default SearchInput;
+export default GenreSetter;

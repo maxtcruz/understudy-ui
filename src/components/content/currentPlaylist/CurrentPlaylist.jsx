@@ -69,7 +69,9 @@ const CurrentPlaylist = (props) => {
 
   return (
       <div className="current-playlist">
-        {createPlaylistButtonJsx}
+        <div className="current-playlist-header">
+          {createPlaylistButtonJsx}
+        </div>
         <ul>
           {trackQueue.map((track) => {
             if (track.index <= currentTrackIndex && !track.softDeleted) {
