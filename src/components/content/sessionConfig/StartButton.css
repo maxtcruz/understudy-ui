@@ -1,0 +1,9 @@
+.start-button {
+  position: absolute;
+  top: 40%;
+  left: 35%;
+}
+
+.start-button button {
+  font-size: 2rem;
+}

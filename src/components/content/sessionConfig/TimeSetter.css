@@ -1,0 +1,15 @@
+.time-error {
+  color: red;
+}
+
+.time-setter {
+  margin-top: 1rem;
+}
+
+.time-field {
+  margin-right: 1rem;
+}
+
+.change-time-button {
+  margin-left: 1rem;
+}

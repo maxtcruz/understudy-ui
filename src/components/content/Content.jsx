@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import './Content.css';
-import Clock from "./clock/Clock";
+import SessionConfig from "./sessionConfig/SessionConfig";
 import TrackQueue from "./trackQueue/TrackQueue";
 
 class Content extends React.Component {
@@ -9,39 +9,32 @@ class Content extends React.Component {
     super(props);
     this.state = {
       studyDurationMs: 0,
-      timeElapsedMs: 0,
-      isGenreSet: false,
+      genre: "",
       isStarted: false
     };
   }
 
-  setStudyDurationMs = (ms) => {
+  onSetTime = (ms) => {
     this.setState({studyDurationMs: ms});
+  };
+
+  onSetGenre = (genre) => {
+    this.setState({genre});
   };
 
   onStart = () => {
     this.setState({isStarted: true});
-    const clockTimer = setInterval(() => {
-      if (this.state.timeElapsedMs < this.state.studyDurationMs) {
-        this.setState({timeElapsedMs: this.state.timeElapsedMs + 1000});
-      } else {
-        clearInterval(clockTimer);
-      }
-    }, 1000);
-  };
-
-  onSetGenre = () => {
-    this.setState({isGenreSet: true});
   };
 
   render() {
     return (
         <div className="content">
-          <Clock
+          <SessionConfig
               studyDurationMs={this.state.studyDurationMs}
-              timeElapsedMs={this.state.timeElapsedMs}
-              isGenreSet={this.state.isGenreSet}
-              onSetTime={this.setStudyDurationMs}
+              genre={this.state.genre}
+              isStarted={this.state.isStarted}
+              onSetTime={this.onSetTime}
+              onSetGenre={this.onSetGenre}
               onStart={this.onStart} />
           <TrackQueue
               accessToken={this.props.accessToken}
@@ -49,9 +42,9 @@ class Content extends React.Component {
               loggedInUserId={this.props.loggedInUserId}
               searchResults={this.state.searchResults}
               studyDurationMs={this.state.studyDurationMs}
+              genre={this.state.genre}
               isStarted={this.state.isStarted}
-              isTrackOver={this.props.isTrackOver}
-              onSetGenre={this.onSetGenre} />
+              isTrackOver={this.props.isTrackOver} />
         </div>
     );
   }

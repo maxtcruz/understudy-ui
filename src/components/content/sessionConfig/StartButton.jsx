@@ -3,7 +3,16 @@ import PropTypes from "prop-types";
 import "./StartButton.css";
 
 const StartButton = (props) => {
-  const {onStart} = props;
+  const {
+    studyDurationMs,
+    genre,
+    isStarted,
+    onStart
+  } = props;
+
+  if (!studyDurationMs || !genre || isStarted) {
+    return null;
+  }
 
   return (
       <div className="start-button">
@@ -15,6 +24,9 @@ const StartButton = (props) => {
 };
 
 StartButton.propTypes = {
+  studyDurationMs: PropTypes.number.isRequired,
+  genre: PropTypes.string.isRequired,
+  isStarted: PropTypes.bool.isRequired,
   onStart: PropTypes.func.isRequired
 };
 

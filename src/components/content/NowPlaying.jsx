@@ -17,7 +17,7 @@ const NowPlaying = (props) => {
             className="skip-button">
           skip
         </button>
-        now playing: {currentTrackIndex > -1
+        <b>now playing:</b> {currentTrackIndex > -1
           ? getFormattedTrackName(trackQueue[currentTrackIndex])
           : ""}
       </div>

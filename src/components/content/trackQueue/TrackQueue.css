@@ -1,5 +1,5 @@
 .track-queue {
-  flex-basis: 100%;
+  flex-basis: 128%;
   text-align: left;
 }
 
@@ -7,14 +7,20 @@
   text-align: center;
 }
 
-.queue-duration {
-  font-size: 0.8rem;
-}
-
-.up-next {
+.up-next-title {
 
 }
 
-.up-next-tracks {
+.track {
+  display: flex;
+  margin-bottom: 0.1rem;
+}
 
+.track-name {
+  flex-basis: 100%;
+}
+
+.remove-track-button {
+  flex-basis: 15%;
+  margin-right: 1rem;
 }

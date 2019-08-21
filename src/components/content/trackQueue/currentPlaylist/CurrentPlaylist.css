@@ -1,9 +1,13 @@
 .current-playlist {
-  flex-basis: 100%;
+  flex-basis: 60%;
   font-size: 0.8rem;
   text-align: left;
 }
 
 .current-playlist-header {
   text-align: center;
+}
+
+.current-playlist-title {
+
 }

@@ -1,31 +1,57 @@
 import React from "react";
 import PropTypes from "prop-types";
 import "./TimeSetter.css";
+import {MS_PER_HOUR} from "../../../constants/NumberConstants";
+import {getClockFormat} from "../../../util/ClockHelpers";
 
 class TimeSetter extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       hours: "",
-      error: ""
+      error: "",
+      studyDurationMs: 0
     }
-
   }
 
   handleOnChange = (event) => {
     this.setState({hours: event.target.value});
   };
 
-  handleOnClick = () => {
+  onSetTime = () => {
     const hours = Number(this.state.hours);
     if (hours) {
-      this.props.onSetTime(hours * 3600000);
+      const ms = hours * MS_PER_HOUR;
+      this.props.onSetTime(ms);
+      this.setState({studyDurationMs: ms, error: ""});
     } else {
       this.setState({hours: "", error: "please enter a valid number"});
     }
   };
 
+  onChangeTime = () => {
+    this.setState({hours: this.state.studyDurationMs / MS_PER_HOUR, studyDurationMs: 0});
+  };
+
   render() {
+    if (this.state.studyDurationMs) {
+      let changeTimeButtonJsx;
+      if (!this.props.isStarted) {
+        changeTimeButtonJsx = (
+            <button
+                className="change-time-button"
+                onClick={this.onChangeTime}>
+              change time
+            </button>
+        );
+      }
+      return (
+          <div className="time-setter">
+            session time: <b>{getClockFormat(this.state.studyDurationMs)}</b>
+            {changeTimeButtonJsx}
+          </div>
+      );
+    }
     let errorJsx;
     if (this.state.error) {
       errorJsx = (
@@ -42,7 +68,7 @@ class TimeSetter extends React.Component {
               value={this.state.hours}
               className="time-field"
               onChange={this.handleOnChange} />
-          <button onClick={this.handleOnClick}>
+          <button onClick={this.onSetTime}>
             set hours
           </button>
         </div>
@@ -52,6 +78,7 @@ class TimeSetter extends React.Component {
 }
 
 TimeSetter.propTypes = {
+  isStarted: PropTypes.bool.isRequired,
   onSetTime: PropTypes.func.isRequired
 };
 

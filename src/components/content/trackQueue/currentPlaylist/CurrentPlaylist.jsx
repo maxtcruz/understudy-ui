@@ -1,12 +1,12 @@
 import React from "react";
 import PropTypes from "prop-types";
 import "./CurrentPlaylist.css";
-import {getFormattedTrackName} from "../../../util/SpotifyWebAPIHelpers";
+import {getFormattedTrackName} from "../../../../util/SpotifyWebAPIHelpers";
 import {
   getSpotifyAddTracksToPlaylistEndpoint,
   getSpotifyCreatePlaylistEndpoint
-} from "../../../resources/RestEndpoints";
-import {handleErrors} from "../../../util/RestHelpers";
+} from "../../../../resources/RestEndpoints";
+import {handleErrors} from "../../../../util/RestHelpers";
 
 const CurrentPlaylist = (props) => {
   const {
@@ -65,12 +65,22 @@ const CurrentPlaylist = (props) => {
         </button>
     );
   }
+  let currentPlaylistTitleJsx;
+  if (playlist.length > 0) {
+    currentPlaylistTitleJsx = (
+        <h3 className="current-playlist-title">
+          current playlist
+        </h3>
+    );
+  }
+
   let trackNumber = 0;
 
   return (
       <div className="current-playlist">
         <div className="current-playlist-header">
           {createPlaylistButtonJsx}
+          {currentPlaylistTitleJsx}
         </div>
         <ul>
           {trackQueue.map((track) => {

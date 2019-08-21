@@ -7,11 +7,9 @@ import {
   getSpotifySearchEndpoint
 } from "../../../resources/RestEndpoints";
 import {handleErrors} from "../../../util/RestHelpers";
-import {getClockFormat} from "../../../util/ClockHelpers";
 import {NUM_TRACKS_TO_SEARCH} from "../../../constants/NumberConstants";
 import NowPlaying from "../NowPlaying";
-import CurrentPlaylist from "../currentPlaylist/CurrentPlaylist";
-import GenreSetter from "./GenreSetter";
+import CurrentPlaylist from "./currentPlaylist/CurrentPlaylist";
 
 class TrackQueue extends React.Component {
   constructor(props) {
@@ -19,20 +17,20 @@ class TrackQueue extends React.Component {
     this.usedTrackIds = new Set();
     this.state = {
       searchResults: [],
-      genre: "",
       trackQueue: [],
-      queueDurationMs: 0,
       currentTrackIndex: -1
     };
   }
 
   componentDidUpdate(prevProps) {
+    // start queue on isStarted = true
     if (!prevProps.isStarted && this.props.isStarted) {
       this.advanceToNextTrack()
       .then(() => {
         this.playCurrentTrack();
       });
     }
+    // play next track when current track ends
     if (!prevProps.isTrackOver
         && this.props.isTrackOver
         && this.state.currentTrackIndex < this.state.trackQueue.length - 1) {
@@ -41,23 +39,19 @@ class TrackQueue extends React.Component {
         this.playCurrentTrack();
       });
     }
+    // add to queue when time increases
     if (prevProps.studyDurationMs < this.props.studyDurationMs
-        && this.state.genre) {
-      const {trackQueue, queueDurationMs} = this.fillQueue(this.state.trackQueue, this.state.queueDurationMs);
-      this.setState({trackQueue, queueDurationMs});
+        && this.props.genre) {
+      this.fillQueue();
     }
-  }
-
-  onSetGenre = (genre) => {
-    if (genre !== this.state.genre) {
-      this.searchTracks(genre, NUM_TRACKS_TO_SEARCH)
+    // recompute queue when genre changes
+    if (prevProps.genre !== this.props.genre) {
+      this.searchTracks(this.props.genre, NUM_TRACKS_TO_SEARCH)
       .then(() => {
         this.buildNewQueue();
       });
     }
-    this.setState({genre});
-    this.props.onSetGenre();
-  };
+  }
 
   searchTracks = (searchQuery, totalNumTracksToSearch) => {
     return new Promise((resolve) => {
@@ -101,57 +95,53 @@ class TrackQueue extends React.Component {
 
   buildNewQueue = () => {
     this.usedTrackIds.clear();
-    const {trackQueue, queueDurationMs} = this.fillQueue();
-    this.setState({
-      trackQueue,
-      queueDurationMs
+    this.setState({trackQueue: []}, () => {
+      this.fillQueue();
     });
   };
 
-  fillQueue = (existingQueue = [], existingQueueDurationMs = 0) => {
-    const {studyDurationMs} = this.props;
-    const {searchResults} = this.state;
-    const trackQueue = existingQueue;
-    let queueDurationMs = existingQueueDurationMs;
-    while (queueDurationMs < studyDurationMs) {
-      let trackToAdd = searchResults[Math.floor(Math.random() * searchResults.length)];
-      while (this.usedTrackIds.has(trackToAdd.id)) {
-        trackToAdd = searchResults[Math.floor(Math.random() * searchResults.length)];
+  fillQueue = () => {
+    return new Promise((resolve) => {
+      const {studyDurationMs} = this.props;
+      const {searchResults} = this.state;
+      const trackQueue = [...this.state.trackQueue];
+      let queueDurationMs = 0;
+      trackQueue.forEach((track) => {
+        if (!track.softDeleted) {
+          queueDurationMs += track.durationMs;
+        }
+      });
+      while (queueDurationMs < studyDurationMs) {
+        let trackToAdd = searchResults[Math.floor(Math.random() * searchResults.length)];
+        while (this.usedTrackIds.has(trackToAdd.id)) {
+          trackToAdd = searchResults[Math.floor(Math.random() * searchResults.length)];
+        }
+        this.usedTrackIds.add(trackToAdd.id);
+        trackToAdd.index = trackQueue.length;
+        queueDurationMs += trackToAdd.durationMs;
+        trackQueue.push(trackToAdd);
       }
-      this.usedTrackIds.add(trackToAdd.id);
-      trackToAdd.index = trackQueue.length;
-      queueDurationMs += trackToAdd.durationMs;
-      trackQueue.push(trackToAdd);
-    }
-    return {
-      trackQueue,
-      queueDurationMs
-    };
+      this.setState({trackQueue}, () => {
+        resolve();
+      });
+    });
   };
 
   replaceTrack = (trackToBeSoftDeleted) => {
     return new Promise((resolve) => {
-      const existingTrackQueue = [];
-      let existingQueueDurationMs = 0;
-      this.state.trackQueue.forEach((track) => {
-        if (!track.softDeleted) {
-          if (track.id === trackToBeSoftDeleted) {
-            existingTrackQueue.push(Object.assign({}, track, {softDeleted: true}));
-          } else {
-            existingQueueDurationMs += track.durationMs;
-            existingTrackQueue.push(track);
-          }
+      const trackQueue = this.state.trackQueue.map((track) => {
+        if (!track.softDeleted && track.id === trackToBeSoftDeleted) {
+          return Object.assign({}, track, {softDeleted: true});
         } else {
-          existingTrackQueue.push(track);
+          return track;
         }
       });
-      const {trackQueue, queueDurationMs} = this.fillQueue(existingTrackQueue, existingQueueDurationMs);
-      this.setState({
-        trackQueue,
-        queueDurationMs
-      }, () => {
-        resolve();
-      });
+      this.setState({trackQueue}, () => {
+        this.fillQueue()
+        .then(() => {
+          resolve();
+        })
+      })
     });
   };
 
@@ -203,30 +193,15 @@ class TrackQueue extends React.Component {
     } = this.props;
     const {
       trackQueue,
-      currentTrackIndex,
-      queueDurationMs,
-      genre
+      currentTrackIndex
     } = this.state;
-    const genreSetterJsx = !genre
-        ? <GenreSetter onSetGenre={this.onSetGenre} />
-        : "";
-    const genreSelectedJsx = genre
-        ? <div>
-          genre selected: {this.state.genre}
-        </div>
-        : "";
     const buildNewQueueButtonJsx = !isStarted && trackQueue.length > 0
         ? <button onClick={this.buildNewQueue}>
           build new queue
         </button>
         : "";
-    const queueDurationJsx = trackQueue.length > 0
-        ? <div className="queue-duration">
-          queue duration: {getClockFormat(queueDurationMs)}
-        </div>
-        : "";
-    const upNextJsx = trackQueue.length > 0
-        ? <h3 className="up-next">
+    const upNextTitleJsx = trackQueue.length > 0
+        ? <h3 className="up-next-title">
           up next
         </h3>
         : "";
@@ -240,19 +215,24 @@ class TrackQueue extends React.Component {
         <React.Fragment>
           <div className="track-queue">
             <div className="track-queue-header">
-              {genreSetterJsx}
-              {genreSelectedJsx}
               {buildNewQueueButtonJsx}
-              {queueDurationJsx}
-              {upNextJsx}
+              {upNextTitleJsx}
             </div>
-            <ul className="up-next-tracks">
+            <ul>
               {trackQueue.map((track) => {
                 if (track.index > currentTrackIndex && !track.softDeleted) {
                   return (
-                      <li key={track.id}>
-                        {getFormattedTrackName(track)}
-                        <button onClick={() => {this.replaceTrack(track.id)}}>remove</button>
+                      <li
+                          key={track.id}
+                          className="track">
+                        <button
+                            onClick={() => {this.replaceTrack(track.id)}}
+                            className="remove-track-button">
+                          remove
+                        </button>
+                        <span className="track-name">
+                          {getFormattedTrackName(track)}
+                        </span>
                       </li>
                   );
                 } else {
@@ -277,9 +257,9 @@ TrackQueue.propTypes = {
   deviceId: PropTypes.string.isRequired,
   loggedInUserId: PropTypes.string.isRequired,
   studyDurationMs: PropTypes.number.isRequired,
+  genre: PropTypes.string.isRequired,
   isStarted: PropTypes.bool.isRequired,
-  isTrackOver: PropTypes.bool.isRequired,
-  onSetGenre: PropTypes.func.isRequired
+  isTrackOver: PropTypes.bool.isRequired
 };
 
 export default TrackQueue;
