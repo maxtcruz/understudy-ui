@@ -1,0 +1,16 @@
+.now-playing {
+  position: fixed;
+  left: 0rem;
+  bottom: 0rem;
+  width: 100vw;
+  background-color: mediumpurple;
+  text-align: left;
+}
+
+.now-playing-content {
+  margin-left: 26%;
+}
+
+.skip-button {
+  margin: 1rem;
+}

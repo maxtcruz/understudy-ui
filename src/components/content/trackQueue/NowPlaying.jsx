@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import "./NowPlaying.css";
-import {getFormattedTrackName} from "../../util/SpotifyWebAPIHelpers";
+import {getFormattedTrackName} from "../../../util/SpotifyWebAPIHelpers";
 
 const NowPlaying = (props) => {
   const {
@@ -12,6 +12,7 @@ const NowPlaying = (props) => {
 
   return (
       <div className="now-playing">
+        <span className="now-playing-content">
         <button
             onClick={skip}
             className="skip-button">
@@ -20,6 +21,7 @@ const NowPlaying = (props) => {
         <b>now playing:</b> {currentTrackIndex > -1
           ? getFormattedTrackName(trackQueue[currentTrackIndex])
           : ""}
+        </span>
       </div>
   );
 };

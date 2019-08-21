@@ -8,7 +8,7 @@ import {
 } from "../../../resources/RestEndpoints";
 import {handleErrors} from "../../../util/RestHelpers";
 import {NUM_TRACKS_TO_SEARCH} from "../../../constants/NumberConstants";
-import NowPlaying from "../NowPlaying";
+import NowPlaying from "./NowPlaying";
 import CurrentPlaylist from "./currentPlaylist/CurrentPlaylist";
 
 class TrackQueue extends React.Component {

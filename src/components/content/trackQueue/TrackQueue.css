@@ -1,6 +1,7 @@
 .track-queue {
   flex-basis: 128%;
   text-align: left;
+  padding-bottom: 3rem;
 }
 
 .track-queue-header {
@@ -23,4 +24,5 @@
 .remove-track-button {
   flex-basis: 15%;
   margin-right: 1rem;
+  height: 1.2rem;
 }
