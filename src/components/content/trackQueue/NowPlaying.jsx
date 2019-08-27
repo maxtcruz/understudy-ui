@@ -11,8 +11,8 @@ const NowPlaying = (props) => {
   } = props;
 
   return (
-      <div className="now-playing">
-        <span className="now-playing-content">
+      <div className="now-playing-container">
+        <span className="now-playing">
         <button
             onClick={skip}
             className="skip-button">

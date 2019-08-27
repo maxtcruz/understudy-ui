@@ -7,37 +7,35 @@ import {
   getSpotifyCreatePlaylistEndpoint
 } from "../../../../resources/RestEndpoints";
 import {handleErrors} from "../../../../util/RestHelpers";
+import SavePlaylistModal from "./SavePlaylistModal";
 
-const CurrentPlaylist = (props) => {
-  const {
-    loggedInUserId,
-    accessToken,
-    trackQueue,
-    currentTrackIndex
-  } = props;
-
-  let playlist = [];
-  trackQueue.forEach((track) => {
-    if (track.index <= currentTrackIndex && !track.softDeleted) {
-      playlist.push(track);
-    }
-  });
+class CurrentPlaylist extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      showModal: false
+    };
+  }
 
   //TODO: handle rare case when there are > 100 tracks (see Spotify API)
-  const createPlaylist = () => {
+  savePlaylist = (playlistName) => {
+    const {
+      loggedInUserId,
+      accessToken,
+    } = this.props;
     fetch(getSpotifyCreatePlaylistEndpoint(loggedInUserId), {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${accessToken}`,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({"name": "understudy!"})
+      body: JSON.stringify({"name": playlistName})
     })
     .then(handleErrors)
     .then((response) => {
       response.json()
       .then((data) => {
-        const urisToSave = playlist.map((track) => {return track.uri});
+        const urisToSave = this.getPlaylist().map((track) => {return track.uri});
         fetch(getSpotifyAddTracksToPlaylistEndpoint(data.id), {
           method: "POST",
           headers: {
@@ -47,6 +45,9 @@ const CurrentPlaylist = (props) => {
           body: JSON.stringify({"uris": urisToSave})
         })
         .then(handleErrors)
+        .then(() => {
+          this.toggleShowModal();
+        })
         .catch((err) => {
           console.error(err);
         })
@@ -57,54 +58,72 @@ const CurrentPlaylist = (props) => {
     });
   };
 
-  let createPlaylistButtonJsx;
-  if (playlist.length > 0) {
-    createPlaylistButtonJsx = (
-        <button onClick={createPlaylist}>
-          save playlist to Spotify account
-        </button>
-    );
-  }
-  let currentPlaylistTitleJsx;
-  if (playlist.length > 0) {
-    currentPlaylistTitleJsx = (
-        <h3 className="current-playlist-title">
-          current playlist
-        </h3>
-    );
-  }
+  toggleShowModal = () => {
+    this.setState({showModal: !this.state.showModal});
+  };
 
-  let trackNumber = 0;
+  getPlaylist = () => {
+    const {
+      trackQueue,
+      currentTrackIndex
+    } = this.props;
+    return trackQueue.filter((track) => {
+      return track.index <= currentTrackIndex && !track.softDeleted;
+    });
+  };
 
-  return (
-      <div className="current-playlist">
-        <div className="current-playlist-header">
-          {createPlaylistButtonJsx}
-          {currentPlaylistTitleJsx}
-        </div>
-        <ul>
-          {trackQueue.map((track) => {
-            if (track.index <= currentTrackIndex && !track.softDeleted) {
+  render() {
+    const playlist = this.getPlaylist();
+    let savePlaylistButtonJsx;
+    if (playlist.length > 0) {
+      savePlaylistButtonJsx = (
+          <button onClick={this.toggleShowModal}>
+            save playlist to Spotify account
+          </button>
+      );
+    }
+    let currentPlaylistTitleJsx;
+    if (playlist.length > 0) {
+      currentPlaylistTitleJsx = (
+          <h3 className="current-playlist-title">
+            current playlist
+          </h3>
+      );
+    }
+    let trackNumber = 0;
+    return (
+        <div className="current-playlist">
+          <div className="current-playlist-header">
+            {savePlaylistButtonJsx}
+            {currentPlaylistTitleJsx}
+          </div>
+          <ul>
+            {playlist.map((track) => {
               trackNumber++;
               return (
                   <li key={track.id}>
                     {trackNumber}. {getFormattedTrackName(track)}
                   </li>
               );
-            } else {
-              return null;
-            }
-          })}
-        </ul>
-      </div>
-  );
-};
+            })}
+          </ul>
+          <SavePlaylistModal
+              showModal={this.state.showModal}
+              onDismissModal={this.toggleShowModal}
+              onSavePlaylist={this.savePlaylist}
+              genre={this.props.genre} />
+        </div>
+    );
+  }
+
+}
 
 CurrentPlaylist.propTypes = {
   loggedInUserId: PropTypes.string.isRequired,
   accessToken: PropTypes.string.isRequired,
   trackQueue: PropTypes.array.isRequired,
-  currentTrackIndex: PropTypes.number.isRequired
+  currentTrackIndex: PropTypes.number.isRequired,
+  genre: PropTypes.string.isRequired
 };
 
 export default CurrentPlaylist;

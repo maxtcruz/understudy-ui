@@ -1,4 +1,4 @@
-.now-playing {
+.now-playing-container {
   position: fixed;
   left: 0rem;
   bottom: 0rem;
@@ -7,7 +7,7 @@
   text-align: left;
 }
 
-.now-playing-content {
+.now-playing {
   margin-left: 26%;
 }
 

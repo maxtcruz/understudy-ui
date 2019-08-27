@@ -189,7 +189,8 @@ class TrackQueue extends React.Component {
     const {
       isStarted,
       loggedInUserId,
-      accessToken
+      accessToken,
+      genre
     } = this.props;
     const {
       trackQueue,
@@ -245,7 +246,8 @@ class TrackQueue extends React.Component {
               loggedInUserId={loggedInUserId}
               accessToken={accessToken}
               trackQueue={trackQueue}
-              currentTrackIndex={currentTrackIndex} />
+              currentTrackIndex={currentTrackIndex}
+              genre={genre} />
           {nowPlayingJsx}
         </React.Fragment>
     );

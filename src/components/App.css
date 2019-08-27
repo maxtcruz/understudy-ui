@@ -1,4 +1,13 @@
+html body {
+  background-color: cornflowerblue;
+}
+
 .app {
   text-align: center;
   position: relative;
+}
+
+.title {
+  margin-top: 0rem;
+  padding-top: 1rem;
 }
