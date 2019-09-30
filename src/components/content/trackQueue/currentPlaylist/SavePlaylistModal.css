@@ -13,12 +13,12 @@
   margin-left: 41%;
   margin-top: 20%;
   width: 16rem;
-  height: 5rem;
+  height: 7rem;
   background-color: mediumpurple;
 }
 
 .playlist-name-input {
-  padding-top: 1rem;
+  padding-top: 1.5rem;
 }
 
 .save-playlist-button {
@@ -28,4 +28,8 @@
 
 .cancel-button {
 
+}
+
+.save-playlist-error {
+  color: red;
 }

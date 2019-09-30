@@ -3,28 +3,46 @@ import PropTypes from "prop-types";
 import "./NowPlaying.css";
 import {getFormattedTrackName} from "../../../util/SpotifyWebAPIHelpers";
 
-const NowPlaying = (props) => {
-  const {
-    skip,
-    currentTrackIndex,
-    trackQueue
-  } = props;
+class NowPlaying extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      skipButtonDisabled: false
+    };
+  }
 
-  return (
-      <div className="now-playing-container">
+  onSkip = () => {
+    this.props.skip();
+    this.setState({skipButtonDisabled: true}, () => {
+      setTimeout(() => {
+        this.setState({skipButtonDisabled: false});
+      }, 500)
+    })
+  };
+
+  render() {
+    const {
+      currentTrackIndex,
+      trackQueue
+    } = this.props;
+    return (
+        <div className="now-playing-container">
         <span className="now-playing">
         <button
-            onClick={skip}
+            onClick={this.onSkip}
+            disabled={this.state.skipButtonDisabled}
             className="skip-button">
           skip
         </button>
         <b>now playing:</b> {currentTrackIndex > -1
-          ? getFormattedTrackName(trackQueue[currentTrackIndex])
-          : ""}
+            ? getFormattedTrackName(trackQueue[currentTrackIndex])
+            : ""}
         </span>
-      </div>
-  );
-};
+        </div>
+    );
+  }
+
+}
 
 NowPlaying.propTypes = {
   skip: PropTypes.func.isRequired,

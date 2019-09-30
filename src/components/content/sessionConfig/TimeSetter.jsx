@@ -11,7 +11,8 @@ class TimeSetter extends React.Component {
       hours: "",
       error: "",
       studyDurationMs: 0
-    }
+    };
+    this.prevStudyDurationMs = 0;
   }
 
   handleOnChange = (event) => {
@@ -20,60 +21,74 @@ class TimeSetter extends React.Component {
 
   onSetTime = () => {
     const hours = Number(this.state.hours);
-    if (hours) {
-      const ms = hours * MS_PER_HOUR;
-      this.props.onSetTime(ms);
-      this.setState({studyDurationMs: ms, error: ""});
+    if (hours && hours > 0) {
+      if (hours > 24) {
+        this.setState({hours: "", error: "understudy supports a maximum session time of 24 hours"});
+      } else {
+        const ms = hours * MS_PER_HOUR;
+        this.props.onSetTime(ms);
+        this.setState({studyDurationMs: ms, error: ""});
+      }
     } else {
-      this.setState({hours: "", error: "please enter a valid number"});
+      this.setState({hours: "", error: "please enter a valid number of hours"});
     }
   };
 
   onChangeTime = () => {
+    this.prevStudyDurationMs = this.state.studyDurationMs;
     this.setState({hours: this.state.studyDurationMs / MS_PER_HOUR, studyDurationMs: 0});
   };
 
   render() {
-    if (this.state.studyDurationMs) {
-      let changeTimeButtonJsx;
-      if (!this.props.isStarted) {
-        changeTimeButtonJsx = (
-            <button
-                className="change-time-button"
-                onClick={this.onChangeTime}>
-              change time
-            </button>
+    const sessionTimeDisplayJsx = (
+        <span>
+            session time: <b>{getClockFormat(this.state.studyDurationMs || this.prevStudyDurationMs)}</b>
+        </span>
+    );
+    let timeSetterJsx;
+    let errorJsx;
+    if (this.props.isStarted) {
+      timeSetterJsx = sessionTimeDisplayJsx
+    } else {
+      if (this.state.studyDurationMs) {
+        timeSetterJsx = (
+            <React.Fragment>
+              {sessionTimeDisplayJsx}
+              <button
+                  className="change-time-button"
+                  onClick={this.onChangeTime}>
+                change time
+              </button>
+            </React.Fragment>
+        );
+      } else {
+        timeSetterJsx = (
+            <React.Fragment>
+              <input
+                  type="text"
+                  value={this.state.hours}
+                  className="time-field"
+                  onChange={this.handleOnChange} />
+              <button onClick={this.onSetTime}>
+                set hours
+              </button>
+            </React.Fragment>
         );
       }
-      return (
-          <div className="time-setter">
-            session time: <b>{getClockFormat(this.state.studyDurationMs)}</b>
-            {changeTimeButtonJsx}
-          </div>
-      );
-    }
-    let errorJsx;
-    if (this.state.error) {
-      errorJsx = (
-          <div className="time-error">
-            {this.state.error}
-          </div>
-      );
+      if (this.state.error) {
+        errorJsx = (
+            <div className="time-error">
+              {this.state.error}
+            </div>
+        );
+      }
     }
     return (
         <div className="time-setter">
           {errorJsx}
-          <input
-              type="text"
-              value={this.state.hours}
-              className="time-field"
-              onChange={this.handleOnChange} />
-          <button onClick={this.onSetTime}>
-            set hours
-          </button>
+          {timeSetterJsx}
         </div>
     );
-
   }
 }
 

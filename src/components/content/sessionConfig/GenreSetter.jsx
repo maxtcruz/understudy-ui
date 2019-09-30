@@ -8,7 +8,8 @@ class GenreSetter extends React.Component {
     this.state = {
       searchQuery: "",
       genre: ""
-    }
+    };
+    this.prevGenre = "";
   }
 
   handleOnChange = (event) => {
@@ -21,6 +22,7 @@ class GenreSetter extends React.Component {
   };
 
   onChangeGenre = () => {
+    this.prevGenre = this.state.genre;
     this.setState({genre: ""});
   };
 
@@ -29,34 +31,53 @@ class GenreSetter extends React.Component {
       genre,
       searchQuery
     } = this.state;
-    if (genre) {
-      let changeGenreButtonJsx;
-      if (!this.props.isStarted) {
-        changeGenreButtonJsx = (
-            <button
-                className="change-genre-button"
-                onClick={this.onChangeGenre}>
-              change genre
-            </button>
+    const genreSelectedDisplayJsx = (
+        <span>
+          genre selected: <b>{genre || this.prevGenre}</b>
+        </span>
+    );
+    let genreSetterJsx;
+    let errorJsx;
+    if (this.props.isStarted) {
+      genreSetterJsx = genreSelectedDisplayJsx;
+    } else {
+      if (genre) {
+        genreSetterJsx = (
+            <React.Fragment>
+              {genreSelectedDisplayJsx}
+              <button
+                  className="change-genre-button"
+                  onClick={this.onChangeGenre}>
+                change genre
+              </button>
+            </React.Fragment>
+        );
+      } else {
+        genreSetterJsx = (
+            <React.Fragment>
+              <input
+                  type="text"
+                  value={searchQuery}
+                  className="genre-field"
+                  onChange={this.handleOnChange} />
+              <button onClick={this.onSetGenre}>
+                set genre
+              </button>
+            </React.Fragment>
         );
       }
-      return (
-          <div className="genre-setter">
-            genre selected: <b>{genre}</b>
-            {changeGenreButtonJsx}
-          </div>
-      );
+      if (this.props.fillQueueError) {
+        errorJsx = (
+            <div className="fill-queue-error">
+              this genre returned an insufficient number of tracks to fill the selected session time
+            </div>
+        );
+      }
     }
     return (
         <div className="genre-setter">
-          <input
-              type="text"
-              value={searchQuery}
-              className="genre-field"
-              onChange={this.handleOnChange} />
-          <button onClick={this.onSetGenre}>
-            set genre
-          </button>
+          {errorJsx}
+          {genreSetterJsx}
         </div>
     );
   }
@@ -64,7 +85,8 @@ class GenreSetter extends React.Component {
 
 GenreSetter.propTypes = {
   isStarted: PropTypes.bool.isRequired,
-  onSetGenre: PropTypes.func.isRequired
+  onSetGenre: PropTypes.func.isRequired,
+  fillQueueError: PropTypes.bool.isRequired
 };
 
 export default GenreSetter;

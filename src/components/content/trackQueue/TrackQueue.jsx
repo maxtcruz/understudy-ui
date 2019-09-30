@@ -7,7 +7,10 @@ import {
   getSpotifySearchEndpoint
 } from "../../../resources/RestEndpoints";
 import {handleErrors} from "../../../util/RestHelpers";
-import {NUM_TRACKS_TO_SEARCH} from "../../../constants/NumberConstants";
+import {
+  NUM_TRACKS_PER_SEARCH,
+  NUM_TRACKS_TO_SEARCH
+} from "../../../constants/NumberConstants";
 import NowPlaying from "./NowPlaying";
 import CurrentPlaylist from "./currentPlaylist/CurrentPlaylist";
 
@@ -17,6 +20,7 @@ class TrackQueue extends React.Component {
     this.usedTrackIds = new Set();
     this.state = {
       searchResults: [],
+      searchResultsDurationMs: 0,
       trackQueue: [],
       currentTrackIndex: -1
     };
@@ -32,11 +36,12 @@ class TrackQueue extends React.Component {
     }
     // play next track when current track ends
     if (!prevProps.isTrackOver
-        && this.props.isTrackOver
-        && this.state.currentTrackIndex < this.state.trackQueue.length - 1) {
+        && this.props.isTrackOver) {
       this.advanceToNextTrack()
       .then(() => {
-        this.playCurrentTrack();
+        if (this.state.currentTrackIndex < this.state.trackQueue.length) {
+          this.playCurrentTrack();
+        }
       });
     }
     // add to queue when time increases
@@ -58,8 +63,7 @@ class TrackQueue extends React.Component {
       const searchResults = [];
       let offset = 0;
       while (offset < totalNumTracksToSearch) {
-        fetch(getSpotifySearchEndpoint("genre:" + searchQuery, "track", offset,
-            50), {
+        fetch(getSpotifySearchEndpoint("genre:" + searchQuery, "track", offset, NUM_TRACKS_PER_SEARCH), {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${this.props.accessToken}`
@@ -78,8 +82,16 @@ class TrackQueue extends React.Component {
                 uri: item.uri
               });
             });
-            if (searchResults.length >= totalNumTracksToSearch) {
-              this.setState({searchResults}, () => {
+            // resolve when we've retrieved all the tracks desired/available
+            if (searchResults.length >= totalNumTracksToSearch || data.tracks.items.length < 50) {
+              let searchResultsDurationMs = 0;
+              searchResults.forEach((track) => {
+                searchResultsDurationMs += track.durationMs;
+              });
+              this.setState({
+                searchResults,
+                searchResultsDurationMs
+              }, () => {
                 resolve();
               });
             }
@@ -88,7 +100,7 @@ class TrackQueue extends React.Component {
         .catch((err) => {
           console.error(err);
         });
-        offset += 50;
+        offset += NUM_TRACKS_PER_SEARCH;
       }
     });
   };
@@ -103,7 +115,11 @@ class TrackQueue extends React.Component {
   fillQueue = () => {
     return new Promise((resolve) => {
       const {studyDurationMs} = this.props;
-      const {searchResults} = this.state;
+      const {searchResults, searchResultsDurationMs} = this.state;
+      if (searchResultsDurationMs < studyDurationMs) {
+        this.props.onSetFillQueueError(true);
+        resolve();
+      }
       const trackQueue = [...this.state.trackQueue];
       let queueDurationMs = 0;
       trackQueue.forEach((track) => {
@@ -122,6 +138,7 @@ class TrackQueue extends React.Component {
         trackQueue.push(trackToAdd);
       }
       this.setState({trackQueue}, () => {
+        this.props.onSetFillQueueError(false);
         resolve();
       });
     });
@@ -176,7 +193,7 @@ class TrackQueue extends React.Component {
     return new Promise((resolve) => {
       const {trackQueue, currentTrackIndex} = this.state;
       let index = currentTrackIndex + 1;
-      while (trackQueue[index].softDeleted) {
+      while (trackQueue[index] && trackQueue[index].softDeleted) {
         index++;
       }
       this.setState({currentTrackIndex: index}, () => {
@@ -206,7 +223,7 @@ class TrackQueue extends React.Component {
           up next
         </h3>
         : "";
-    const nowPlayingJsx = isStarted
+    const nowPlayingJsx = isStarted && currentTrackIndex < trackQueue.length
         ? <NowPlaying
             skip={this.skip}
             currentTrackIndex={currentTrackIndex}
@@ -261,7 +278,8 @@ TrackQueue.propTypes = {
   studyDurationMs: PropTypes.number.isRequired,
   genre: PropTypes.string.isRequired,
   isStarted: PropTypes.bool.isRequired,
-  isTrackOver: PropTypes.bool.isRequired
+  isTrackOver: PropTypes.bool.isRequired,
+  onSetFillQueueError: PropTypes.func.isRequired
 };
 
 export default TrackQueue;

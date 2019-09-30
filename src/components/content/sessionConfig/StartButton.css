@@ -1,9 +1,9 @@
-.start-button {
+.start-button-container {
   position: absolute;
   top: 40%;
   left: 35%;
 }
 
-.start-button button {
+.start-button {
   font-size: 2rem;
 }

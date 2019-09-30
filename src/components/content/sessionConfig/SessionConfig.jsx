@@ -11,6 +11,7 @@ const SessionConfig = (props) => {
     studyDurationMs,
     genre,
     isStarted,
+    fillQueueError,
     onSetTime,
     onSetGenre,
     onStart
@@ -23,12 +24,14 @@ const SessionConfig = (props) => {
             isStarted={isStarted} />
         <GenreSetter
             onSetGenre={onSetGenre}
-            isStarted={isStarted} />
+            isStarted={isStarted}
+            fillQueueError={fillQueueError} />
         <StartButton
             studyDurationMs={studyDurationMs}
             genre={genre}
             isStarted={isStarted}
-            onStart={onStart}/>
+            fillQueueError={fillQueueError}
+            onStart={onStart} />
         <Clock
             studyDurationMs={studyDurationMs}
             isStarted={isStarted} />
@@ -40,6 +43,7 @@ SessionConfig.propTypes = {
   studyDurationMs: PropTypes.number.isRequired,
   genre: PropTypes.string.isRequired,
   isStarted: PropTypes.bool.isRequired,
+  fillQueueError: PropTypes.bool.isRequired,
   onSetTime: PropTypes.func.isRequired,
   onSetGenre: PropTypes.func.isRequired,
   onStart: PropTypes.func.isRequired

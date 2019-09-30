@@ -7,6 +7,7 @@ const StartButton = (props) => {
     studyDurationMs,
     genre,
     isStarted,
+    fillQueueError,
     onStart
   } = props;
 
@@ -15,8 +16,11 @@ const StartButton = (props) => {
   }
 
   return (
-      <div className="start-button">
-        <button onClick={onStart}>
+      <div className="start-button-container">
+        <button
+            className="start-button"
+            disabled={fillQueueError}
+            onClick={onStart}>
           start
         </button>
       </div>
@@ -27,6 +31,7 @@ StartButton.propTypes = {
   studyDurationMs: PropTypes.number.isRequired,
   genre: PropTypes.string.isRequired,
   isStarted: PropTypes.bool.isRequired,
+  fillQueueError: PropTypes.bool.isRequired,
   onStart: PropTypes.func.isRequired
 };
 
