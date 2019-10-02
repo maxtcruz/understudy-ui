@@ -37,7 +37,10 @@ class SavePlaylistModal extends React.Component {
   };
 
   render() {
-    const {showModal} = this.props;
+    const {
+      showModal,
+      modalLoading
+    } = this.props;
     const {
       error,
       playlistName
@@ -61,15 +64,18 @@ class SavePlaylistModal extends React.Component {
               <input
                   type="text"
                   value={playlistName}
+                  disabled={modalLoading}
                   onChange={this.handleOnChange} />
             </div>
             <button
                 onClick={this.onSavePlaylist}
+                disabled={modalLoading}
                 className="save-playlist-button">
               save playlist
             </button>
             <button
                 onClick={this.onCancel}
+                disabled={modalLoading}
                 className="cancel-button">
               cancel
             </button>
@@ -81,6 +87,7 @@ class SavePlaylistModal extends React.Component {
 
 SavePlaylistModal.propTypes = {
   showModal: PropTypes.bool.isRequired,
+  modalLoading: PropTypes.bool.isRequired,
   onDismissModal: PropTypes.func.isRequired,
   onSavePlaylist: PropTypes.func.isRequired,
   genre: PropTypes.string.isRequired

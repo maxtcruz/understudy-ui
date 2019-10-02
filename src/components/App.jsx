@@ -16,6 +16,7 @@ import {handleErrors} from "../util/RestHelpers";
 
 class App extends React.Component {
   constructor(props) {
+    console.log(`env: ${process.env.UNDERSTUDY_ENV}`);
     super(props);
     const urlParamsMap = getUrlParamsMap(window.location.href);
     this.refreshToken = window.localStorage.getItem(SPOTIFY_REFRESH_TOKEN);

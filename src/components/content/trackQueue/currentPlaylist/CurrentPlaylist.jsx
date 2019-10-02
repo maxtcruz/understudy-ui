@@ -13,7 +13,8 @@ class CurrentPlaylist extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      showModal: false
+      showModal: false,
+      modalLoading: false
     };
   }
 
@@ -23,6 +24,7 @@ class CurrentPlaylist extends React.Component {
       loggedInUserId,
       accessToken,
     } = this.props;
+    this.setState({modalLoading: true});
     fetch(getSpotifyCreatePlaylistEndpoint(loggedInUserId), {
       method: "POST",
       headers: {
@@ -47,6 +49,7 @@ class CurrentPlaylist extends React.Component {
         .then(handleErrors)
         .then(() => {
           this.toggleShowModal();
+          this.setState({modalLoading: false});
         })
         .catch((err) => {
           console.error(err);
@@ -109,6 +112,7 @@ class CurrentPlaylist extends React.Component {
           </ul>
           <SavePlaylistModal
               showModal={this.state.showModal}
+              modalLoading={this.state.modalLoading}
               onDismissModal={this.toggleShowModal}
               onSavePlaylist={this.savePlaylist}
               genre={this.props.genre} />
