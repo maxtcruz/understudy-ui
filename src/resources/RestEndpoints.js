@@ -1,4 +1,4 @@
-const UNDERSTUDY_SERVICE_BASE_URL = process.env.UNDERSTUDY_ENV === "dev"
+const UNDERSTUDY_SERVICE_BASE_URL = process.env.NODE_ENV === "development"
     ? "http://localhost:8080"
     : "";
 const SPOTIFY_WEB_API_BASE_URL = "https://api.spotify.com/v1";
