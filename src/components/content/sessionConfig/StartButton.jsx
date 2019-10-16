@@ -8,6 +8,7 @@ const StartButton = (props) => {
     genre,
     isStarted,
     fillQueueError,
+    isQueueFilled,
     onStart
   } = props;
 
@@ -19,7 +20,7 @@ const StartButton = (props) => {
       <div className="start-button-container">
         <button
             className="start-button"
-            disabled={fillQueueError}
+            disabled={fillQueueError || !isQueueFilled}
             onClick={onStart}>
           start
         </button>
@@ -32,6 +33,7 @@ StartButton.propTypes = {
   genre: PropTypes.string.isRequired,
   isStarted: PropTypes.bool.isRequired,
   fillQueueError: PropTypes.bool.isRequired,
+  isQueueFilled: PropTypes.bool.isRequired,
   onStart: PropTypes.func.isRequired
 };
 

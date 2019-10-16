@@ -12,6 +12,7 @@ const SessionConfig = (props) => {
     genre,
     isStarted,
     fillQueueError,
+    isQueueFilled,
     onSetTime,
     onSetGenre,
     onStart
@@ -31,6 +32,7 @@ const SessionConfig = (props) => {
             genre={genre}
             isStarted={isStarted}
             fillQueueError={fillQueueError}
+            isQueueFilled={isQueueFilled}
             onStart={onStart} />
         <Clock
             studyDurationMs={studyDurationMs}
@@ -44,6 +46,7 @@ SessionConfig.propTypes = {
   genre: PropTypes.string.isRequired,
   isStarted: PropTypes.bool.isRequired,
   fillQueueError: PropTypes.bool.isRequired,
+  isQueueFilled: PropTypes.bool.isRequired,
   onSetTime: PropTypes.func.isRequired,
   onSetGenre: PropTypes.func.isRequired,
   onStart: PropTypes.func.isRequired

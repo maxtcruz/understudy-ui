@@ -11,7 +11,8 @@ class Content extends React.Component {
       studyDurationMs: 0,
       genre: "",
       isStarted: false,
-      fillQueueError: false
+      fillQueueError: false,
+      isQueueFilled: false
     };
   }
 
@@ -31,6 +32,10 @@ class Content extends React.Component {
     this.setState({fillQueueError});
   };
 
+  onSetIsQueueFilled = (isQueueFilled) => {
+    this.setState({isQueueFilled});
+  };
+
   render() {
     return (
         <div className="content">
@@ -39,6 +44,7 @@ class Content extends React.Component {
               genre={this.state.genre}
               isStarted={this.state.isStarted}
               fillQueueError={this.state.fillQueueError}
+              isQueueFilled={this.state.isQueueFilled}
               onSetTime={this.onSetTime}
               onSetGenre={this.onSetGenre}
               onStart={this.onStart} />
@@ -51,7 +57,8 @@ class Content extends React.Component {
               genre={this.state.genre}
               isStarted={this.state.isStarted}
               isTrackOver={this.props.isTrackOver}
-              onSetFillQueueError={this.onSetFillQueueError} />
+              onSetFillQueueError={this.onSetFillQueueError}
+              onSetIsQueueFilled={this.onSetIsQueueFilled} />
         </div>
     );
   }

@@ -3,9 +3,12 @@ const loadPlayer = () => {
     if (window.Spotify) {
       resolve(window.Spotify);
     } else {
-      window.onSpotifyWebPlaybackSDKReady = () => {
-        resolve(window.Spotify);
-      };
+      const checkPlayerLoaded = setInterval(() => {
+        if (window.Spotify) {
+          clearInterval(checkPlayerLoaded);
+          resolve(window.Spotify);
+        }
+      }, 100);
     }
   });
 };

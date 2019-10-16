@@ -138,6 +138,7 @@ class TrackQueue extends React.Component {
         trackQueue.push(trackToAdd);
       }
       this.setState({trackQueue}, () => {
+        this.props.onSetIsQueueFilled(true);
         this.props.onSetFillQueueError(false);
         resolve();
       });
@@ -279,7 +280,8 @@ TrackQueue.propTypes = {
   genre: PropTypes.string.isRequired,
   isStarted: PropTypes.bool.isRequired,
   isTrackOver: PropTypes.bool.isRequired,
-  onSetFillQueueError: PropTypes.func.isRequired
+  onSetFillQueueError: PropTypes.func.isRequired,
+  onSetIsQueueFilled: PropTypes.func.isRequired
 };
 
 export default TrackQueue;

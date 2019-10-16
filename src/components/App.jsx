@@ -1,10 +1,10 @@
-import React from 'react';
-import './App.css';
-import AuthScreen from './AuthScreen';
+import React from "react";
+import "./App.css";
+import AuthScreen from "./AuthScreen";
 import {getUrlParamsMap} from "../util/URLHelpers";
 import {
   getSpotifyAccessTokenEndpoint, getSpotifyLoggedInUserInfoEndpoint,
-  getSpotifyRefreshAccessTokenEndpoint
+  getSpotifyRefreshAccessTokenEndpoint, UNDERSTUDY_UI_URL
 } from "../resources/RestEndpoints";
 import {
   SPOTIFY_ACCESS_TOKEN,
@@ -73,7 +73,7 @@ class App extends React.Component {
       .catch(() => {
         //TODO: throw custom exception on BE for bad request, log as warning and redirect
         this.clearLocalStorage();
-        window.location.assign("http://localhost:3000");
+        window.location.assign(UNDERSTUDY_UI_URL);
       });
     });
   };
@@ -136,14 +136,11 @@ class App extends React.Component {
       this.getLoggedInUserInfo();
     }
     return (
-        <div className="app">
-          <h1 className="title">understudy</h1>
-          <AuthScreen
-              authorizationCode={authorizationCode}
-              authorizationError={authorizationError}
-              accessToken={accessToken}
-              loggedInUserId={loggedInUserId} />
-        </div>
+        <AuthScreen
+            authorizationCode={authorizationCode}
+            authorizationError={authorizationError}
+            accessToken={accessToken}
+            loggedInUserId={loggedInUserId} />
     );
   }
 }

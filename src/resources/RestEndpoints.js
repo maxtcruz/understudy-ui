@@ -1,6 +1,9 @@
+const UNDERSTUDY_UI_URL = process.env.NODE_ENV === "development"
+    ? "http://localhost:3000"
+    : "https://www.understudy.maxtcruz.com";
 const UNDERSTUDY_SERVICE_BASE_URL = process.env.NODE_ENV === "development"
-    ? "http://localhost:8080"
-    : "";
+    ? "https://localhost:8443"
+    : "https://api.understudy.maxtcruz.com";
 const SPOTIFY_WEB_API_BASE_URL = "https://api.spotify.com/v1";
 
 const getSpotifyAuthCodeEndpoint = () => {
@@ -8,11 +11,11 @@ const getSpotifyAuthCodeEndpoint = () => {
 };
 
 const getSpotifyAccessTokenEndpoint = (authorizationCode) => {
-  return `/spotify/auth/getAccessToken?authorizationCode=${authorizationCode}`;
+  return `${UNDERSTUDY_SERVICE_BASE_URL}/spotify/auth/getAccessToken?authorizationCode=${authorizationCode}`;
 };
 
 const getSpotifyRefreshAccessTokenEndpoint = (refreshToken) => {
-  return `/spotify/auth/refreshAccessToken?refreshToken=${refreshToken}`;
+  return `${UNDERSTUDY_SERVICE_BASE_URL}/spotify/auth/refreshAccessToken?refreshToken=${refreshToken}`;
 };
 
 const getSpotifyLoggedInUserInfoEndpoint = () => {
@@ -36,6 +39,7 @@ const getSpotifyAddTracksToPlaylistEndpoint = (playlistId) => {
 };
 
 export {
+  UNDERSTUDY_UI_URL,
   UNDERSTUDY_SERVICE_BASE_URL,
   getSpotifyAuthCodeEndpoint,
   getSpotifyAccessTokenEndpoint,
